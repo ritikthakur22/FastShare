@@ -38,14 +38,17 @@
     <link rel="preload" href="lang/en.json" as="fetch">
     <link rel="preload" href="fonts/OpenSans/static/OpenSans-Medium.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="stylesheet" type="text/css" href="styles/styles-main.css">
+    <link rel="stylesheet" type="text/css" href="styles/sidebar.css">
     <link rel="manifest" href="manifest.json">
+    <script defer src="scripts/capacitor-fs.js"></script>
+    <script defer src="scripts/sidebar.js"></script>
 </head>
 
 <body translate="no">
     <header class="row wrap opacity-0" style="justify-content: flex-start; gap: 10px; padding: 15px;">
-        <a href="#about" class="icon-button" data-i18n-key="header.about" data-i18n-attrs="title aria-label">
+        <a href="#" id="menu-btn" class="icon-button" title="Menu">
             <svg class="icon">
-                <use xlink:href="#info-outline"></use>
+                <use xlink:href="#menu-icon"></use>
             </svg>
         </a>
         <div id="clipboard-history" class="icon-button" title="Clipboard History">
@@ -53,7 +56,7 @@
                 <use xlink:href="#file"></use>
             </svg>
         </div>
-        <div id="theme-wrapper">
+        <div id="theme-wrapper" hidden>
             <div id="theme-auto" class="icon-button selected" data-i18n-key="header.theme-auto" data-i18n-attrs="title">
                 <svg class="icon">
                     <use xlink:href="#icon-theme-auto"></use>
@@ -620,6 +623,9 @@
         <symbol id="i-cursor" viewBox="-180 0 640 512">
             <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.-->
             <path d="M.1 29.3C-1.4 47 11.7 62.4 29.3 63.9l8 .7C70.5 67.3 96 95 96 128.3V224H64c-17.7 0-32 14.3-32 32s14.3 32 32 32H96v95.7c0 33.3-25.5 61-58.7 63.8l-8 .7C11.7 449.6-1.4 465 .1 482.7s16.9 30.7 34.5 29.2l8-.7c34.1-2.8 64.2-18.9 85.4-42.9c21.2 24 51.2 40.1 85.4 42.9l8 .7c17.6 1.5 33.1-11.6 34.5-29.2s-11.6-33.1-29.2-34.5l-8-.7C185.5 444.7 160 417 160 383.7V288h32c17.7 0 32-14.3 32-32s-14.3-32-32-32H160V128.3c0-33.3 25.5-61 58.7-63.8l8-.7c17.6-1.5 30.7-16.9 29.2-34.5S239-1.4 221.3 .1l-8 .7C179.2 3.6 149.2 19.7 128 43.7c-21.2-24-51.2-40-85.4-42.9l-8-.7C17-1.4 1.6 11.7 .1 29.3z"></path>
+        </symbol>
+        <symbol id="menu-icon" viewBox="0 0 24 24">
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path>
         </symbol>
         <symbol id="font" viewBox="-100 0 640 512">
             <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.-->

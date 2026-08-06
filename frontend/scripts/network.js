@@ -250,8 +250,14 @@ class ServerConnection {
         let wsServerDomain = this._config.signalingServer
             ? this._config.signalingServer
             : location.host + location.pathname;
-
-        let wsUrl = new URL(protocol + '://' + wsServerDomain + 'server');
+            
+        const customWss = localStorage.getItem('setting-wss');
+        let wsUrl;
+        if (customWss && customWss.length > 5) {
+            wsUrl = new URL(customWss);
+        } else {
+            wsUrl = new URL(protocol + '://' + wsServerDomain + 'server');
+        }
 
         wsUrl.searchParams.append('webrtc_supported', window.isRtcSupported ? 'true' : 'false');
 
