@@ -16,6 +16,14 @@ FastShare is an open-source, ultra-fast, peer-to-peer local file and clipboard s
 
 Visit the live application here: **[https://fastshare.ritikthakur.com.np](https://fastshare.ritikthakur.com.np)**
 
+## 📱 Native Android App
+
+FastShare is now available as a native Android app! Enjoy system-level features like saving directly to your gallery and native notifications.
+
+**[Download the APK here](https://github.com/ritikthakur22/fastshare_app/releases/latest)**
+
+*Source code for the app is available at [ritikthakur22/fastshare_app](https://github.com/ritikthakur22/fastshare_app).*
+
 ## 🏗️ Architecture & Hosting
 
 This project is built using a modern, scalable split-deployment architecture for maximum performance and reliability:
