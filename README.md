@@ -52,9 +52,14 @@ The backend signaling server is powered by Node.js and relies on the following c
 
 *Note: The frontend is built with vanilla HTML, CSS, and JS (No heavy frameworks).*
 
-## 🛠 Local Setup & Installation
+## 📋 Prerequisites
 
-Before you begin, ensure you have **[Node.js](https://nodejs.org/)** and **Git** installed on your system.
+Before you begin, ensure you have the following installed on your system:
+- **[Node.js](https://nodejs.org/)** (v15 or higher)
+- **[npm](https://www.npmjs.com/)** (comes pre-bundled with Node.js)
+- **[Git](https://git-scm.com/)**
+
+## 🛠 Local Setup & Installation
 
 ### 🐧🍎 Linux / macOS
 Open your terminal and run:
