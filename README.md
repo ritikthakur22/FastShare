@@ -77,4 +77,4 @@ Once the server is running, open `http://localhost:3000` in your web browser.
 3. Tap on a device's icon to send files, or right-click (long-press on mobile) to send a direct message or clipboard text.
 
 ## 👏 Credits
-FastShare is a modified and rebranded fork of [PairDrop](https://github.com/schlagmichdoch/PairDrop), which itself is a fork of Snapdrop. Huge thanks to the original developers for building such a robust P2P WebRTC architecture.
+FastShare is a modified and rebranded fork of PairDrop, which itself is a fork of Snapdrop. Huge thanks for building such a robust P2P WebRTC architecture.
