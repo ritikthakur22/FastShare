@@ -54,8 +54,10 @@ The backend signaling server is powered by Node.js and relies on the following c
 
 ## 🛠 Local Setup & Installation
 
-To run FastShare locally on your network for development:
+Before you begin, ensure you have **[Node.js](https://nodejs.org/)** and **Git** installed on your system.
 
+### 🐧🍎 Linux / macOS
+Open your terminal and run:
 ```bash
 # Clone the repository
 git clone https://github.com/ritikthakur22/FastShare.git
@@ -69,6 +71,23 @@ npm install
 # Start the application
 npm start
 ```
+
+### 🪟 Windows
+Open Command Prompt (`cmd`) or PowerShell and run:
+```cmd
+:: Clone the repository
+git clone https://github.com/ritikthakur22/FastShare.git
+
+:: Enter the directory
+cd FastShare
+
+:: Install dependencies
+npm install
+
+:: Start the application
+npm start
+```
+
 Once the server is running, open `http://localhost:3000` in your web browser.
 
 ## 💡 How to Use
