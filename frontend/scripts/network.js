@@ -23,7 +23,7 @@ class ServerConnection {
         Events.on('offline', _ => clearTimeout(this._reconnectTimer));
         Events.on('online', _ => this._connect());
 
-        this._getConfig().then(() => this._connect());
+        this._connect();
     }
 
     _getConfig() {
