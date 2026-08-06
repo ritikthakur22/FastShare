@@ -1,0 +1,37 @@
+name: FastShare CI
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Verify build structure
+      run: |
+        if [ ! -d "frontend" ] || [ ! -d "backend" ]; then
+          echo "Error: Core directories missing"
+          exit 1
+        fi
+        
+    - name: Test Docker Build
+      run: docker build -t fastshare:test .
