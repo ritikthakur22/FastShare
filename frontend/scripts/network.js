@@ -1,6 +1,7 @@
 class ServerConnection {
 
-    constructor() {
+    constructor(config) {
+        this._config = config || {};
         Events.on('pagehide', _ => this._disconnect());
         Events.on(window.visibilityChangeEvent, _ => this._onVisibilityChange());
 
