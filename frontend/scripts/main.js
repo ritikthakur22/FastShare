@@ -185,7 +185,7 @@ class FastShare {
         this.noSleepUI = new NoSleepUI();
         this.broadCast = new BrowserTabsConnector();
         this.server = new ServerConnection({
-            // signalingServer: 'fastshare-backend.onrender.com' // TODO: Replace this with your actual Render URL when ready
+            signalingServer: 'fastshare-ja1a.onrender.com/'
         });
         this.peers = new PeersManager(this.server);
     }
