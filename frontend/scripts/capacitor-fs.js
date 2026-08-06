@@ -1235,12 +1235,218 @@
     }
   });
 
+  // node_modules/@capacitor/local-notifications/dist/esm/definitions.js
+  var Weekday;
+  var init_definitions3 = __esm({
+    "node_modules/@capacitor/local-notifications/dist/esm/definitions.js"() {
+      (function(Weekday2) {
+        Weekday2[Weekday2["Sunday"] = 1] = "Sunday";
+        Weekday2[Weekday2["Monday"] = 2] = "Monday";
+        Weekday2[Weekday2["Tuesday"] = 3] = "Tuesday";
+        Weekday2[Weekday2["Wednesday"] = 4] = "Wednesday";
+        Weekday2[Weekday2["Thursday"] = 5] = "Thursday";
+        Weekday2[Weekday2["Friday"] = 6] = "Friday";
+        Weekday2[Weekday2["Saturday"] = 7] = "Saturday";
+      })(Weekday || (Weekday = {}));
+    }
+  });
+
+  // node_modules/@capacitor/local-notifications/dist/esm/web.js
+  var web_exports3 = {};
+  __export(web_exports3, {
+    LocalNotificationsWeb: () => LocalNotificationsWeb
+  });
+  var LocalNotificationsWeb;
+  var init_web3 = __esm({
+    "node_modules/@capacitor/local-notifications/dist/esm/web.js"() {
+      init_dist();
+      LocalNotificationsWeb = class extends WebPlugin {
+        constructor() {
+          super(...arguments);
+          this.pending = [];
+          this.deliveredNotifications = [];
+          this.hasNotificationSupport = () => {
+            if (!("Notification" in window) || !Notification.requestPermission) {
+              return false;
+            }
+            if (Notification.permission !== "granted") {
+              try {
+                new Notification("");
+              } catch (e) {
+                if (e instanceof Error && e.name === "TypeError") {
+                  return false;
+                }
+              }
+            }
+            return true;
+          };
+        }
+        async getDeliveredNotifications() {
+          const deliveredSchemas = [];
+          for (const notification of this.deliveredNotifications) {
+            const deliveredSchema = {
+              title: notification.title,
+              id: parseInt(notification.tag),
+              body: notification.body
+            };
+            deliveredSchemas.push(deliveredSchema);
+          }
+          return {
+            notifications: deliveredSchemas
+          };
+        }
+        async removeDeliveredNotifications(delivered) {
+          for (const toRemove of delivered.notifications) {
+            const found = this.deliveredNotifications.find((n) => n.tag === String(toRemove.id));
+            found === null || found === void 0 ? void 0 : found.close();
+            this.deliveredNotifications = this.deliveredNotifications.filter(() => !found);
+          }
+        }
+        async removeAllDeliveredNotifications() {
+          for (const notification of this.deliveredNotifications) {
+            notification.close();
+          }
+          this.deliveredNotifications = [];
+        }
+        async createChannel() {
+          throw this.unimplemented("Not implemented on web.");
+        }
+        async deleteChannel() {
+          throw this.unimplemented("Not implemented on web.");
+        }
+        async listChannels() {
+          throw this.unimplemented("Not implemented on web.");
+        }
+        async schedule(options) {
+          if (!this.hasNotificationSupport()) {
+            throw this.unavailable("Notifications not supported in this browser.");
+          }
+          for (const notification of options.notifications) {
+            this.sendNotification(notification);
+          }
+          return {
+            notifications: options.notifications.map((notification) => ({
+              id: notification.id
+            }))
+          };
+        }
+        async getPending() {
+          return {
+            notifications: this.pending
+          };
+        }
+        async registerActionTypes() {
+          throw this.unimplemented("Not implemented on web.");
+        }
+        async cancel(pending) {
+          this.pending = this.pending.filter((notification) => !pending.notifications.find((n) => n.id === notification.id));
+        }
+        async areEnabled() {
+          const { display } = await this.checkPermissions();
+          return {
+            value: display === "granted"
+          };
+        }
+        async changeExactNotificationSetting() {
+          throw this.unimplemented("Not implemented on web.");
+        }
+        async checkExactNotificationSetting() {
+          throw this.unimplemented("Not implemented on web.");
+        }
+        async requestPermissions() {
+          if (!this.hasNotificationSupport()) {
+            throw this.unavailable("Notifications not supported in this browser.");
+          }
+          const display = this.transformNotificationPermission(await Notification.requestPermission());
+          return { display };
+        }
+        async checkPermissions() {
+          if (!this.hasNotificationSupport()) {
+            throw this.unavailable("Notifications not supported in this browser.");
+          }
+          const display = this.transformNotificationPermission(Notification.permission);
+          return { display };
+        }
+        transformNotificationPermission(permission) {
+          switch (permission) {
+            case "granted":
+              return "granted";
+            case "denied":
+              return "denied";
+            default:
+              return "prompt";
+          }
+        }
+        sendPending() {
+          var _a;
+          const toRemove = [];
+          const now = (/* @__PURE__ */ new Date()).getTime();
+          for (const notification of this.pending) {
+            if (((_a = notification.schedule) === null || _a === void 0 ? void 0 : _a.at) && notification.schedule.at.getTime() <= now) {
+              this.buildNotification(notification);
+              toRemove.push(notification);
+            }
+          }
+          this.pending = this.pending.filter((notification) => !toRemove.find((n) => n === notification));
+        }
+        sendNotification(notification) {
+          var _a;
+          if ((_a = notification.schedule) === null || _a === void 0 ? void 0 : _a.at) {
+            const diff = notification.schedule.at.getTime() - (/* @__PURE__ */ new Date()).getTime();
+            this.pending.push(notification);
+            setTimeout(() => {
+              this.sendPending();
+            }, diff);
+            return;
+          }
+          this.buildNotification(notification);
+        }
+        buildNotification(notification) {
+          const localNotification = new Notification(notification.title, {
+            body: notification.body,
+            tag: String(notification.id)
+          });
+          localNotification.addEventListener("click", this.onClick.bind(this, notification), false);
+          localNotification.addEventListener("show", this.onShow.bind(this, notification), false);
+          localNotification.addEventListener("close", () => {
+            this.deliveredNotifications = this.deliveredNotifications.filter(() => !this);
+          }, false);
+          this.deliveredNotifications.push(localNotification);
+          return localNotification;
+        }
+        onClick(notification) {
+          const data = {
+            actionId: "tap",
+            notification
+          };
+          this.notifyListeners("localNotificationActionPerformed", data);
+        }
+        onShow(notification) {
+          this.notifyListeners("localNotificationReceived", notification);
+        }
+      };
+    }
+  });
+
+  // node_modules/@capacitor/local-notifications/dist/esm/index.js
+  var LocalNotifications;
+  var init_esm3 = __esm({
+    "node_modules/@capacitor/local-notifications/dist/esm/index.js"() {
+      init_dist();
+      init_definitions3();
+      LocalNotifications = registerPlugin("LocalNotifications", {
+        web: () => Promise.resolve().then(() => (init_web3(), web_exports3)).then((m) => new m.LocalNotificationsWeb())
+      });
+    }
+  });
+
   // src_cap_fs.js
   var require_src_cap_fs = __commonJS({
     "src_cap_fs.js"() {
       init_esm();
       init_esm2();
       init_dist();
+      init_esm3();
       window.saveFileToCapacitor = async function(file, fileName) {
         if (!Capacitor.isNativePlatform()) return false;
         const reader = new FileReader();
@@ -1266,6 +1472,20 @@
         };
         return true;
       };
+      window.requestAppPermissions = async function() {
+        if (!Capacitor.isNativePlatform()) return;
+        try {
+          await LocalNotifications.requestPermissions();
+          await Filesystem.requestPermissions();
+        } catch (e) {
+          console.error("Permission request failed", e);
+        }
+      };
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+          if (typeof window.requestAppPermissions === "function") window.requestAppPermissions();
+        }, 1500);
+      });
     }
   });
   require_src_cap_fs();
