@@ -113,5 +113,11 @@ Once the server is running, open `http://localhost:3000` in your web browser.
 2. Open FastShare ([fastshare.ritikthakur.com.np](https://fastshare.ritikthakur.com.np)) on both devices.
 3. Tap on a device's icon to send files, or right-click (long-press on mobile) to send a direct message or clipboard text.
 
+
+### Human-Centric Intelligent Engineering
+
+A human-driven engineering approach enhanced by intelligent computational assistance throughout the software development lifecycle, with human judgment governing architecture, implementation, validation, and final outcomes.
+
+
 ## 👏 Credits
 FastShare is a modified and rebranded fork of [PairDrop](https://github.com/schlagmichdoch/PairDrop), which itself is a fork of Snapdrop. Huge thanks for building such a robust P2P WebRTC architecture.
