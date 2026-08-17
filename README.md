@@ -113,6 +113,19 @@ Once the server is running, open `http://localhost:3000` in your web browser.
 2. Open FastShare ([fastshare.ritikthakur.com.np](https://fastshare.ritikthakur.com.np)) on both devices.
 3. Tap on a device's icon to send files, or right-click (long-press on mobile) to send a direct message or clipboard text.
 
+## 🌐 Custom Signaling Server (Self-Hosting)
+
+FastShare relies on a central **Signaling Server** to help devices find each other and establish a secure, peer-to-peer WebRTC connection. Once connected, files are transferred directly between devices and never touch the server.
+
+By default, FastShare uses our public signaling server hosted on Render (`wss://fastshare-ja1a.onrender.com`). **For most users, simply leave the "Signaling Server URL" setting blank.** The app will automatically connect and work seamlessly out of the box.
+
+### Why use a custom server?
+Privacy-conscious users or corporate networks can self-host the FastShare backend on their own hardware (like a Raspberry Pi, NAS, or local server). 
+1. Run the backend using Node.js or Docker on your local network.
+2. Open the FastShare settings on your devices.
+3. Enter your local server's WebSocket URL (e.g., `ws://192.168.1.50:3000`) in the **Signaling Server URL** field.
+
+This allows FastShare to work **entirely offline** without an internet connection, provided the devices are connected to the same local router.
 
 ### Human-Centric Intelligent Engineering
 
