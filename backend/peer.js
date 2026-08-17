@@ -160,6 +160,14 @@ export default class Peer {
             deviceName = 'Unknown Device';
         }
 
+        const searchParams = new URL(req.url, "http://server").searchParams;
+        const customIcon = searchParams.get('device_icon');
+        if (customIcon === 'phone-iphone') {
+            ua.device.type = 'mobile';
+        } else if (customIcon === 'desktop-mac') {
+            ua.device.type = undefined; // defaults to desktop icon
+        }
+
         const displayName = uniqueNamesGenerator({
             length: 2,
             separator: ' ',
