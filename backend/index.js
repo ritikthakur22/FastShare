@@ -55,7 +55,7 @@ conf.signalingServer = process.env.SIGNALING_SERVER && process.env.SIGNALING_SER
     ? process.env.SIGNALING_SERVER
     : false;
 
-conf.ipv6Localize = parseInt(process.env.IPV6_LOCALIZE) || false;
+conf.ipv6Localize = parseInt(process.env.IPV6_LOCALIZE) || 4;
 
 let rateLimit = false;
 if (process.argv.includes('--rate-limit') || process.env.RATE_LIMIT === "true") {
