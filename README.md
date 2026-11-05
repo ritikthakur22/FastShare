@@ -127,10 +127,6 @@ Privacy-conscious users or corporate networks can self-host the FastShare backen
 
 This allows FastShare to work **entirely offline** without an internet connection, provided the devices are connected to the same local router.
 
-### Human-Centric Intelligent Engineering
-
-A human-driven engineering approach enhanced by intelligent computational assistance throughout the software development lifecycle, with human judgment governing architecture, implementation, validation, and final outcomes.
-
 
 ## 👏 Credits
 FastShare is a modified and rebranded fork of [PairDrop](https://github.com/schlagmichdoch/PairDrop), which itself is a fork of Snapdrop. Huge thanks for building such a robust P2P WebRTC architecture.
