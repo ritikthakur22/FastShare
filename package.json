@@ -2,14 +2,14 @@
   "name": "fastshare",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "Fast, private, peer-to-peer file and clipboard sharing across devices via WebRTC.",
   "main": "backend/index.js",
   "scripts": {
     "start": "node backend/index.js",
     "start:prod": "node backend/index.js --rate-limit --auto-restart"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Ritik Thakur <https://www.ritikthakur.com.np>",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
