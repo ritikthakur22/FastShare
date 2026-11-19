@@ -54,6 +54,11 @@ export default class FastShareServer {
             });
         });
 
+        // Uptime checks and the external cron ping use this to wake the server (D-010).
+        app.get('/health', (req, res) => {
+            res.send('ok');
+        });
+
         app.use((req, res) => {
             res.redirect(301, '/');
         });

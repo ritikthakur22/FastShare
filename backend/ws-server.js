@@ -91,6 +91,11 @@ export default class FastShareWsServer {
             case 'signal':
                 this._signalAndRelay(sender, message);
                 break;
+            case 'lan-endpoint':
+                // FastShare apps in the same room tell each other their LAN address, so they can
+                // connect directly on networks that block multicast (D-010). Always relayed.
+                this._signalAndRelay(sender, message);
+                break;
             case 'request':
             case 'header':
             case 'partition':
@@ -451,7 +456,10 @@ export default class FastShareWsServer {
 
     _keepAlive(peer) {
         this._cancelKeepAlive(peer);
-        let timeout = 1000;
+        // A ping every 25 s, disconnect after 60 s without a pong (D-010). At 1 s each client
+        // cost about 10 MB a day, and phones that were busy for a few seconds got dropped.
+        const interval = 25000;
+        const deadAfter = 60000;
 
         if (!this._keepAliveTimers[peer.id]) {
             this._keepAliveTimers[peer.id] = {
@@ -460,15 +468,14 @@ export default class FastShareWsServer {
             };
         }
 
-        if (Date.now() - this._keepAliveTimers[peer.id].lastBeat > 5 * timeout) {
-            // Disconnect peer if unresponsive for 10s
+        if (Date.now() - this._keepAliveTimers[peer.id].lastBeat > deadAfter) {
             this._disconnect(peer);
             return;
         }
 
         this._send(peer, { type: 'ping' });
 
-        this._keepAliveTimers[peer.id].timer = setTimeout(() => this._keepAlive(peer), timeout);
+        this._keepAliveTimers[peer.id].timer = setTimeout(() => this._keepAlive(peer), interval);
     }
 
     _cancelKeepAlive(peer) {
