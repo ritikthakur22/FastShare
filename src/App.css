@@ -229,8 +229,8 @@ dialog[open] {
 
 .fs-radar-stage {
   position: relative;
-  width: min(700px, 92vw, calc(100dvh - 200px));
-  height: min(700px, 92vw, calc(100dvh - 200px));
+  width: min(540px, 88vw, calc(100dvh - 220px));
+  height: min(540px, 88vw, calc(100dvh - 220px));
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -238,6 +238,12 @@ dialog[open] {
   margin: auto;
   min-height: 280px;
   min-width: 280px;
+  transition: width var(--fs-transition-base), height var(--fs-transition-base);
+}
+
+.fs-radar-stage.fs-radar-stage-compact {
+  width: min(420px, 80vw, calc(100dvh - 360px));
+  height: min(420px, 80vw, calc(100dvh - 360px));
 }
 
 .fs-radar-sweep {
