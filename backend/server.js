@@ -3,6 +3,7 @@ import RateLimit from "express-rate-limit";
 import {fileURLToPath} from "url";
 import path, {dirname} from "path";
 import http from "http";
+import fs from "fs";
 
 export default class FastShareServer {
 
@@ -32,7 +33,9 @@ export default class FastShareServer {
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = dirname(__filename);
 
-        const publicPathAbs = path.join(__dirname, '../frontend');
+        const distPath = path.join(__dirname, '../dist');
+        const frontendPath = path.join(__dirname, '../frontend');
+        const publicPathAbs = fs.existsSync(distPath) ? distPath : frontendPath;
         app.use(express.static(publicPathAbs));
 
         if (conf.debugMode && conf.rateLimit) {
