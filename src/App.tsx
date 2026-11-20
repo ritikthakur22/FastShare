@@ -146,12 +146,8 @@ export function App() {
   };
 
   const handleSendStagedToAll = () => {
-    if (stagedFiles.length === 0) return;
-    const targets = peersList.length > 0 ? peersList : [
-      { id: 'demo-linux', displayName: 'Linux PC' } as DiscoveredPeer,
-      { id: 'demo-phone', displayName: 'Redmi Note 9' } as DiscoveredPeer,
-    ];
-    for (const peer of targets) {
+    if (stagedFiles.length === 0 || peersList.length === 0) return;
+    for (const peer of peersList) {
       handleSendFilesToPeer(peer, stagedFiles);
     }
     setStagedFiles([]);
@@ -211,16 +207,13 @@ export function App() {
               onClearStaged={() => setStagedFiles([])}
               onSendStagedToAll={handleSendStagedToAll}
               onSendMessageClick={() => {
-                const target = peersList[0] ?? {
-                  id: 'demo-linux',
-                  displayName: 'Linux PC',
-                  deviceName: 'Chrome',
-                  state: 'connected',
-                  ipNetwork: true,
-                  lastSeen: Date.now(),
-                };
-                setSelectedPeerForSend(target);
-                setIsSendSheetOpen(true);
+                const target = peersList[0];
+                if (target) {
+                  setSelectedPeerForSend(target);
+                  setIsSendSheetOpen(true);
+                } else {
+                  setIsLinkDevicesOpen(true);
+                }
               }}
               onViewAllActivity={() => setActiveTab('activity')}
               onRefresh={refreshConnection}
@@ -350,15 +343,10 @@ export function App() {
         <ClipboardModal
           onClose={() => setIsClipboardOpen(false)}
           onSendText={(text) => {
-            const target = selectedPeerForSend ?? peersList[0] ?? {
-              id: 'demo-linux',
-              displayName: 'Linux PC',
-              deviceName: 'Chrome',
-              state: 'connected',
-              ipNetwork: true,
-              lastSeen: Date.now(),
-            };
-            handleSendTextToPeer(target, text);
+            const target = selectedPeerForSend ?? peersList[0];
+            if (target) {
+              handleSendTextToPeer(target, text);
+            }
           }}
         />
       </Sheet>

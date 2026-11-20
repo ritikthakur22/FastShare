@@ -20,26 +20,7 @@ const RADAR_SLOTS = [
 
 export function Radar({ peers, onSelectPeerForSend, onRefresh }: RadarProps) {
   const [selectedPeerId, setSelectedPeerId] = useState<string | null>(null);
-
-  // Fallback demo peers if no live peers yet - showing both Wi-Fi and Internet
-  const activePeers: DiscoveredPeer[] = peers.length > 0 ? peers : [
-    {
-      id: 'demo-linux',
-      displayName: 'Linux PC',
-      deviceName: 'Chrome',
-      state: 'connected',
-      ipNetwork: true, // Same Wi-Fi
-      lastSeen: Date.now(),
-    },
-    {
-      id: 'demo-phone',
-      displayName: 'Redmi Note 9',
-      deviceName: 'Android',
-      state: 'connected',
-      ipNetwork: false, // Internet / Room
-      lastSeen: Date.now(),
-    },
-  ];
+  const activePeers: DiscoveredPeer[] = peers;
 
   return (
     <div

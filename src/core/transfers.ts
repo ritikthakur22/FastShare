@@ -26,55 +26,19 @@ function loadHistory(): TransferRecord[] {
     const raw = localStorage.getItem('fs.history');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed.slice(0, 100);
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed.filter(item => item && !item.id?.startsWith('seed-')).slice(0, 100);
+        if (cleaned.length !== parsed.length) {
+          localStorage.setItem('fs.history', JSON.stringify(cleaned));
+        }
+        return cleaned;
+      }
     }
   } catch {
     // fallback
   }
 
-  // Initial seed demo history matching the UI showcase if empty
-  return [
-    {
-      id: 'seed-1',
-      peerId: 'p-1',
-      peerName: 'Lenovo Laptop',
-      direction: 'sent',
-      name: 'wallpaper.jpg',
-      size: 2400000,
-      timestamp: Date.now() - 2 * 60 * 1000,
-      status: 'completed',
-    },
-    {
-      id: 'seed-2',
-      peerId: 'p-2',
-      peerName: 'PC',
-      direction: 'received',
-      name: 'Design_Report.pdf',
-      size: 1800000,
-      timestamp: Date.now() - 5 * 60 * 1000,
-      status: 'completed',
-    },
-    {
-      id: 'seed-3',
-      peerId: 'p-3',
-      peerName: 'MacBook',
-      direction: 'sent',
-      name: 'video.mp4',
-      size: 12600000,
-      timestamp: Date.now() - 8 * 60 * 1000,
-      status: 'completed',
-    },
-    {
-      id: 'seed-4',
-      peerId: 'p-1',
-      peerName: 'Laptop',
-      direction: 'received',
-      name: 'notes.txt',
-      size: 12000,
-      timestamp: Date.now() - 12 * 60 * 1000,
-      status: 'completed',
-    },
-  ];
+  return [];
 }
 
 export const transfersStore = createStore<TransfersState>({
