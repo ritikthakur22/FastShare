@@ -56,17 +56,19 @@ export function ClipboardModal({ onSendText, onClose }: ClipboardModalProps) {
 
   const handleComposeSubmit = () => {
     if (composeText.trim()) {
+      const fullText = composeText.trim();
       addTransferRecord({
         id: `text-${Date.now()}`,
         peerId: 'self',
         peerName: 'Nearby Device',
         direction: 'sent',
-        name: composeText.trim(),
-        size: composeText.trim().length,
+        name: fullText.slice(0, 60),
+        size: new TextEncoder().encode(fullText).length,
         timestamp: Date.now(),
         status: 'completed',
+        textPayload: fullText,
       });
-      onSendText?.(composeText.trim());
+      onSendText?.(fullText);
       setComposeText('');
       setIsComposing(false);
       onClose();
@@ -220,16 +222,17 @@ export function ClipboardModal({ onSendText, onClose }: ClipboardModalProps) {
                     lineHeight: '1.45',
                     wordBreak: 'break-word',
                     userSelect: 'text',
+                    whiteSpace: 'pre-wrap',
                   }}
                 >
-                  {clip.name}
+                  {clip.textPayload || clip.name}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => handleCopy(clip.id, clip.name)}
+                    onClick={() => handleCopy(clip.id, clip.textPayload || clip.name)}
                     icon={<Icon name={isCopied ? 'check' : 'content_copy'} size={13} />}
                   >
                     {isCopied ? 'Copied' : 'Copy'}

@@ -18,7 +18,8 @@ export function TransferDetailModal({ transfer, open, onClose }: TransferDetailM
   if (!transfer) return null;
 
   const content = transfer.textPayload || transfer.name;
-  const isText = Boolean(transfer.textPayload) || transfer.id.startsWith('msg-') || transfer.id.startsWith('sent-');
+  const isText = Boolean(transfer.textPayload) || transfer.id.startsWith('msg-') || transfer.id.startsWith('sent-') || transfer.id.startsWith('text-');
+  const isLegacyTruncated = !transfer.textPayload && transfer.name.endsWith('...') && transfer.size > transfer.name.length;
   const links = extractSafeLinks(content);
 
   const handleCopy = async () => {
@@ -136,7 +137,7 @@ export function TransferDetailModal({ transfer, open, onClose }: TransferDetailM
               backgroundColor: 'var(--fs-bg)',
               borderRadius: 'var(--fs-radius-control)',
               border: '1px solid var(--fs-separator)',
-              maxHeight: '260px',
+              maxHeight: '300px',
               overflowY: 'auto',
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
@@ -149,6 +150,12 @@ export function TransferDetailModal({ transfer, open, onClose }: TransferDetailM
           >
             {content}
           </div>
+
+          {isLegacyTruncated && (
+            <p style={{ fontSize: '0.74rem', color: 'var(--fs-text-3)', fontStyle: 'italic', marginTop: '2px' }}>
+              * This legacy message was received before the full clipboard update. Any new message or clipboard sent now preserves 100% full content.
+            </p>
+          )}
         </div>
 
         {/* Auto-detected Links Section */}

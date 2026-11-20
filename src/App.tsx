@@ -198,16 +198,6 @@ export function App() {
 
   const handleSendTextToPeer = (peer: DiscoveredPeer, text: string) => {
     sendTextMessage(peer.id, text);
-    addTransferRecord({
-      id: `text-${Date.now()}`,
-      peerId: peer.id,
-      peerName: peer.displayName,
-      direction: 'sent',
-      name: text.length > 30 ? `${text.slice(0, 30)}...` : text,
-      size: text.length,
-      timestamp: Date.now(),
-      status: 'completed',
-    });
     notifyTextSent(peer.displayName, text);
   };
 
