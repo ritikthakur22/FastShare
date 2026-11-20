@@ -1,12 +1,12 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/ritikthakur22/FastShare/master/frontend/images/android-chrome-192x192.png" width="128" alt="FastShare Logo" />
+  <img src="public/icons/favicon.svg" width="128" height="128" alt="FastShare Logo" />
 
-  # 🚀 FastShare
-  **A seamless, ultra-fast method to share files and clipboard across devices.**
+  # 🚀 FastShare Web 2.0
+  **Ultra-fast, private, cross-platform file, text, and clipboard sharing over WebRTC.**
 
   [![Website](https://img.shields.io/badge/Website-fastshare.ritikthakur.com.np-519E8A?style=for-the-badge)](https://fastshare.ritikthakur.com.np)
   [![Google Play](https://img.shields.io/badge/Google_Play-FastShare-34A853?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.crdy.fastshare)
-  [![License](https://img.shields.io/badge/License-Proprietary-orange.svg?style=for-the-badge)](LICENSE)
+  [![License](https://img.shields.io/badge/License-Proprietary-red.svg?style=for-the-badge)](LICENSE)
   [![Android Client](https://img.shields.io/badge/Android_App-fastshare__app-blue?style=for-the-badge&logo=android&logoColor=white)](https://github.com/ritikthakur22/fastshare_app)
 </div>
 
@@ -17,11 +17,13 @@
 
 ---
 
-FastShare is an ultra-fast, peer-to-peer local file and clipboard sharing platform. It enables seamless file transfers across different devices and operating systems without any setup, registration, or cloud storage dependency. Built with simplicity, privacy, and speed in mind, FastShare connects devices on the same network instantly.
+FastShare is a peer-to-peer file, text, and clipboard sharing platform. It enables instant, encrypted transfers directly between devices without cloud storage, file size limits, or user accounts. 
 
-## 🌟 Live Demo
+FastShare Web 2.0 is a modern client built to deliver the design, responsiveness, and performance of the official native mobile application directly in any browser.
 
-Visit the live web application here: **[https://fastshare.ritikthakur.com.np](https://fastshare.ritikthakur.com.np)**
+## 🌟 Live Web App
+
+Access the official web application at: **[https://fastshare.ritikthakur.com.np](https://fastshare.ritikthakur.com.np)**
 
 ## 📱 Official Mobile Application
 
@@ -35,15 +37,15 @@ FastShare is available as an official native Android app on the **Google Play St
 
 - **Google Play Store Listing:** [FastShare on Google Play](https://play.google.com/store/apps/details?id=com.crdy.fastshare)
 - **Application ID:** `com.crdy.fastshare`
-- **Native Android Client Repository:** [ritikthakur22/fastshare_app](https://github.com/ritikthakur22/fastshare_app)
+- **Companion Mobile Client Repository:** [ritikthakur22/fastshare_app](https://github.com/ritikthakur22/fastshare_app)
 - **Direct APK Releases:** [Latest APK Releases](https://github.com/ritikthakur22/fastshare_app/releases/latest)
 
-## 🏗️ Architecture & Hosting
+## 🏗️ Architecture & Deployment
 
-This project is built using a modern, scalable split-deployment architecture for maximum performance and reliability:
+FastShare utilizes a split deployment architecture designed for speed and reliability:
 
-- **Frontend (Vercel):** The user interface is statically hosted on [Vercel](https://vercel.com) ensuring low-latency delivery globally through Vercel's Edge Network.
-- **Backend (Render):** The WebSockets signaling server is hosted on [Render](https://render.com). It acts as an open API for matchmaking, allowing devices to discover each other securely before establishing a direct WebRTC peer-to-peer connection.
+- **Frontend Client (Vercel):** Modern Preact + TypeScript Single Page Application (SPA), bundled with Vite. Deployed on [Vercel](https://vercel.com) Edge Network with zero-bundle bloat (under 40 kB gzip) and strict Content Security Policy (CSP).
+- **Backend Signaling Server (Render):** Lightweight Node.js WebSocket service hosted on [Render](https://render.com). Coordinates WebRTC ICE candidate exchange and discovery. Once peers establish a WebRTC data channel, all payloads stream device-to-device with end-to-end encryption. The server never inspects or touches files.
 
 <div align="center">
   <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" />
@@ -52,96 +54,71 @@ This project is built using a modern, scalable split-deployment architecture for
   <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white" />
 </div>
 
-## 🚀 Features
+## 🚀 Key Features
 
-- **Blazing Fast Transfers**: Direct peer-to-peer encrypted data streams using WebRTC.
-- **Cross-Platform Compatibility**: Works across Android, iOS, Windows, macOS, and Linux through any modern web browser or the native Android app.
-- **Clipboard Syncing**: Seamlessly share and sync clipboard text between paired devices.
-- **Zero Cloud Storage**: Files transfer directly between devices and never touch an intermediate cloud server.
-- **No Account Required**: Instant peer discovery on the local network without login or registration.
+- **Direct WebRTC P2P Transfers:** Files stream directly peer-to-peer at full LAN or Wi-Fi speeds without intermediate hops.
+- **Native App Design Alignment:** Features concentric radar scanning pulses, 360-degree laser sweep, dark and light themes, and responsive layout for mobile and desktop.
+- **Network Awareness:** Clear Wi-Fi vs Public Internet badges on nearby peers.
+- **System Audio & Notifications:** Integrated browser Web Notifications and synthesized Web Audio chimes for sent, received, and incoming transfers.
+- **Multi-Device Pairing & Rooms:** Connect across networks using 6-digit pair keys or temporary 5-letter public rooms.
+- **Clipboard & Text Sharing:** Share text snippets, URLs, and clipboard data instantly.
+- **Privacy & Security First:** Zero analytics, zero trackers, no cookies, and no database retention. Files are kept in volatile memory and never persisted remotely.
 
-## 📦 Tech Stack & Dependencies
+## 📦 Tech Stack
 
-The backend signaling server is powered by Node.js and relies on the following core packages:
+- **Client:** Preact, TypeScript, Vite, WebRTC (`RTCDataChannel`), Web Audio API, Web Notifications API.
+- **Signaling Server:** Node.js, Express, `ws` (WebSockets), `ua-parser-js`, `unique-names-generator`.
 
-| Package | Version | Description |
-| :--- | :--- | :--- |
-| <img src="https://img.shields.io/badge/Express.js-404D59?style=flat-square&logo=express" /> | `^4.18.2` | Core web framework for the signaling server |
-| <img src="https://img.shields.io/badge/ws-000000?style=flat-square&logo=socket.io" /> | `^8.16.0` | High-performance WebSocket client & server for Node.js |
-| **`express-rate-limit`** | `^7.1.5` | Basic rate-limiting middleware for Express |
-| **`ua-parser-js`** | `^1.0.37` | Lightweight device and browser detection |
-| **`unique-names-generator`** | `^4.3.0` | Generates random, memorable device names |
+## 🛠 Local Setup & Development
 
-*Note: The frontend is built with vanilla HTML, CSS, and modern JavaScript for maximum performance and zero bloat.*
+### Prerequisites
+- **Node.js** (v18 or higher recommended)
+- **npm** (v9 or higher)
 
-## 📋 Prerequisites
-
-- **[Node.js](https://nodejs.org/)** (v15 or higher)
-- **[npm](https://www.npmjs.com/)** (bundled with Node.js)
-- **[Git](https://git-scm.com/)**
-
-## 🛠 Local Setup & Installation
-
-### 🐧🍎 Linux / macOS
+### Installation
 ```bash
 # Clone the repository
 git clone https://github.com/ritikthakur22/FastShare.git
 
-# Enter the directory
+# Enter project directory
 cd FastShare
 
 # Install dependencies
 npm install
-
-# Start the application
-npm start
 ```
 
-### 🪟 Windows
-```cmd
-:: Clone the repository
-git clone https://github.com/ritikthakur22/FastShare.git
+### Running Locally
+```bash
+# Start frontend client in development mode (Vite)
+npm run dev
 
-:: Enter the directory
-cd FastShare
+# Build production bundle (outputs to dist/ and mirrors to frontend/)
+npm run build
 
-:: Install dependencies
-npm install
+# Run automated tests
+npm test
 
-:: Start the application
+# Run backend signaling server
 npm start
 ```
-
-Once running, access the application at `http://localhost:3000`.
-
-## 💡 How to Use
-1. Ensure both devices are connected to the same Wi-Fi network.
-2. Open FastShare ([fastshare.ritikthakur.com.np](https://fastshare.ritikthakur.com.np)) on both devices.
-3. Tap on a device's icon to send files, or right-click (long-press on mobile) to send a direct message or clipboard text.
 
 ## 🌐 Custom Signaling Server (Self-Hosting)
 
-FastShare relies on a central **Signaling Server** to help devices discover each other and establish a secure, peer-to-peer WebRTC connection. Once connected, files are transferred directly between devices and never touch the server.
+FastShare connects by default to the official signaling server on Render (`wss://fastshare-ja1a.onrender.com/server`).
 
-By default, FastShare uses our public signaling server hosted on Render (`wss://fastshare-ja1a.onrender.com`). **For most users, simply leave the "Signaling Server URL" setting blank.** The app will automatically connect and work seamlessly out of the box.
+For local-only networks, corporate intranets, or air-gapped environments:
+1. Start the signaling server on your local machine:
+   ```bash
+   npm start
+   ```
+2. Open FastShare on your browser, navigate to **Settings > Advanced**, and update the **Signaling Server URL** to your local address (e.g., `ws://192.168.1.100:3000`).
 
-### Why use a custom server?
-Privacy-conscious users or corporate networks can self-host the FastShare backend on their own hardware (such as a Raspberry Pi, NAS, or private server):
-1. Run the backend using Node.js or Docker on your local network.
-2. Open the FastShare settings on your devices.
-3. Enter your local server's WebSocket URL (e.g., `ws://192.168.1.50:3000`) in the **Signaling Server URL** field.
+## 📄 Proprietary License & Terms of Use
 
-This allows FastShare to work **entirely offline** without an internet connection, provided the devices are connected to the same local router.
+**Copyright © 2026 Ritik Thakur. All rights reserved.**
 
-## 📄 License & Terms of Use
+This software and its source code are proprietary. Use, reproduction, copying, distribution, modification, public display, or decompilation of any part of this software without prior written authorization from the copyright holder is strictly prohibited.
 
-This project is licensed under the **FastShare Software License Agreement** - see the [LICENSE](LICENSE) file for complete terms:
-
-- **Personal & Educational Use:** Free to run, study, and self-host for personal, non-commercial purposes.
-- **Explicit Prohibition:** You may NOT publish, republish, distribute, upload, or make available this software, or any derivative works or builds, on the **Google Play Store**, Apple App Store, or any app store without prior written authorization from Ritik Thakur.
-- **Commercial Exploitation:** Commercial redistribution, reselling, or monetization without explicit written authorization is strictly prohibited.
-
-For inquiries or authorization, contact [Ritik Thakur](https://www.ritikthakur.com.np).
-
-## 👏 Credits & Attributions
-FastShare is inspired by and derived from open-source peer-to-peer WebRTC innovations, including [PairDrop](https://github.com/schlagmichdoch/PairDrop) and Snapdrop.
+- **No Unauthorized Distribution:** You may NOT publish, republish, distribute, upload, or make available this software, or any derivative works or builds, on the **Google Play Store**, Apple App Store, or any app marketplace or website without explicit written authorization from Ritik Thakur.
+- **No Commercial Exploitation:** Commercial use, licensing, reselling, or monetization without authorization is prohibited.
+- For permission requests or commercial inquiries, contact [Ritik Thakur](https://www.ritikthakur.com.np).

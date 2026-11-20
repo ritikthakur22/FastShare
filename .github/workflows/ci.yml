@@ -26,6 +26,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: Run tests and build
+      run: |
+        npm test
+        npm run build
+
     - name: Verify build structure
       run: |
         if [ ! -d "frontend" ] || [ ! -d "backend" ]; then
