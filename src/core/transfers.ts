@@ -14,6 +14,7 @@ export interface TransferRecord {
   status: TransferStatus;
   progress?: number; // 0 to 1
   speed?: number; // bytes/sec
+  textPayload?: string; // Full message content for text transfers / notes
 }
 
 export interface TransfersState {

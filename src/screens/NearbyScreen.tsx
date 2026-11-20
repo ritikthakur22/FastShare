@@ -19,6 +19,7 @@ interface NearbyScreenProps {
   onViewAllActivity: () => void;
   onRefresh: () => void;
   onOpenLinkDevices?: () => void;
+  onSelectTransfer?: (item: TransferRecord) => void;
 }
 
 export function NearbyScreen({
@@ -33,6 +34,7 @@ export function NearbyScreen({
   onViewAllActivity,
   onRefresh,
   onOpenLinkDevices,
+  onSelectTransfer,
 }: NearbyScreenProps) {
   const [isWindowDragOver, setIsWindowDragOver] = useState(false);
 
@@ -172,6 +174,7 @@ export function NearbyScreen({
         <RecentActivityPanel
           history={history}
           onViewAll={onViewAllActivity}
+          onSelectTransfer={onSelectTransfer}
         />
       </aside>
     </div>

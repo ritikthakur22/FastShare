@@ -22,20 +22,34 @@ import { transfersStore, addTransferRecord } from './core/transfers';
 import { connectSignaling, refreshConnection } from './core/signaling';
 import { initWebRTC, sendTextMessage, sendFilesToPeer, onIncomingFile } from './core/rtc';
 import { notifyFilesSent, notifyFileReceived, notifyTextSent, notifyIncomingTransfer } from './core/notifications';
+import { TransferDetailModal } from './screens/TransferDetailModal';
+import { TransferRecord } from './core/transfers';
 import { Sheet } from './ui/Sheet';
 import { TextField } from './ui/TextField';
 import { Button } from './ui/Button';
 import { ToastContainer } from './ui/ToastContainer';
 import './App.css';
 
+const getInitialTab = (): ActiveTab => {
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname.toLowerCase();
+    if (path === '/settings') return 'settings';
+    if (path === '/activity' || path === '/history') return 'activity';
+  }
+  return 'nearby';
+};
+
 export function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('nearby');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(getInitialTab);
   const [editingDeviceName, setEditingDeviceName] = useState(false);
   const [tempDeviceName, setTempDeviceName] = useState('');
 
   // Selected peer & Send Sheet state
   const [selectedPeerForSend, setSelectedPeerForSend] = useState<DiscoveredPeer | null>(null);
   const [isSendSheetOpen, setIsSendSheetOpen] = useState(false);
+
+  // Selected transfer for Detail / Note Modal
+  const [selectedTransferForDetail, setSelectedTransferForDetail] = useState<TransferRecord | null>(null);
 
   // Send Tray staged files state (multi-device send)
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
@@ -57,9 +71,42 @@ export function App() {
 
   const peersList = Object.values(peersMap);
 
+  // Dynamic Routing Handler
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    const targetPath = tab === 'nearby' ? '/' : `/${tab}`;
+    if (typeof window !== 'undefined' && window.location.pathname !== targetPath) {
+      window.history.pushState({ tab }, '', targetPath);
+    }
+  };
+
   useEffect(() => {
     connectSignaling();
     initWebRTC();
+
+    // Check if initial URL points to a specific screen or modal
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/link' || path === '/pair') {
+        setIsLinkDevicesOpen(true);
+      }
+
+      // History back/forward navigation support
+      const handlePopState = () => {
+        const currentPath = window.location.pathname.toLowerCase();
+        if (currentPath === '/settings') {
+          setActiveTab('settings');
+        } else if (currentPath === '/activity' || currentPath === '/history') {
+          setActiveTab('activity');
+        } else if (currentPath === '/' || currentPath === '/nearby') {
+          setActiveTab('nearby');
+        } else if (currentPath === '/link' || currentPath === '/pair') {
+          setIsLinkDevicesOpen(true);
+        }
+      };
+
+      window.addEventListener('popstate', handlePopState);
+    }
 
     // Parse URL entry points (?pair_key=NNNNNN or ?room_id=xxxxx)
     try {
@@ -202,7 +249,7 @@ export function App() {
   return (
     <div style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden' }}>
       {/* Desktop Left Sidebar with smooth auto-expand on hover */}
-      <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} onSelectTab={handleTabChange} />
 
       {/* Main Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }}>
@@ -210,7 +257,7 @@ export function App() {
         <TopBar
           onEditDeviceName={handleEditDeviceName}
           onOpenLinkDevices={() => setIsLinkDevicesOpen(true)}
-          onOpenSettings={() => setActiveTab('settings')}
+          onOpenSettings={() => handleTabChange('settings')}
           onOpenClipboard={() => setIsClipboardOpen(true)}
         />
 
@@ -234,14 +281,18 @@ export function App() {
                   setIsLinkDevicesOpen(true);
                 }
               }}
-              onViewAllActivity={() => setActiveTab('activity')}
+              onViewAllActivity={() => handleTabChange('activity')}
               onRefresh={refreshConnection}
               onOpenLinkDevices={() => setIsLinkDevicesOpen(true)}
+              onSelectTransfer={setSelectedTransferForDetail}
             />
           )}
 
           {activeTab === 'activity' && (
-            <ActivityScreen history={transfers.history} />
+            <ActivityScreen
+              history={transfers.history}
+              onSelectTransfer={setSelectedTransferForDetail}
+            />
           )}
 
           {activeTab === 'settings' && (
@@ -258,7 +309,7 @@ export function App() {
       </div>
 
       {/* Mobile Floating Tab Bar */}
-      <FloatingTabBar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <FloatingTabBar activeTab={activeTab} onSelectTab={handleTabChange} />
 
       {/* Full Send Sheet matching native app send/[id].tsx */}
       <SendSheet
@@ -370,6 +421,13 @@ export function App() {
           }}
         />
       </Sheet>
+
+      {/* Note / Transfer Detail Modal */}
+      <TransferDetailModal
+        transfer={selectedTransferForDetail}
+        open={Boolean(selectedTransferForDetail)}
+        onClose={() => setSelectedTransferForDetail(null)}
+      />
 
       {/* In-app Toast Notification Container */}
       <ToastContainer />

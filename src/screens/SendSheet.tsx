@@ -406,9 +406,17 @@ export function SendSheet({
               }}
             >
               <textarea
-                placeholder="Type or paste a text or link"
+                placeholder="Type or paste a text or link (Ctrl + Enter to send)"
                 value={text}
                 onInput={(e) => setText((e.target as HTMLTextAreaElement).value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (text.trim()) {
+                      handleSendText();
+                    }
+                  }
+                }}
                 rows={3}
                 style={{
                   width: '100%',
@@ -421,7 +429,10 @@ export function SendSheet({
                   outline: 'none',
                 }}
               />
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--fs-text-3)' }}>
+                  Ctrl + Enter to send
+                </span>
                 <Button
                   size="sm"
                   disabled={text.trim().length === 0}

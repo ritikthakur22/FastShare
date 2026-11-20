@@ -150,10 +150,11 @@ function setupDataChannel(peerId: string, dc: RTCDataChannel) {
             peerId,
             peerName,
             direction: 'received',
-            name: displayText.slice(0, 30) + (displayText.length > 30 ? '...' : ''),
+            name: displayText.slice(0, 36) + (displayText.length > 36 ? '...' : ''),
             size: displayText.length,
             timestamp: Date.now(),
             status: 'completed',
+            textPayload: displayText,
           });
           notifyTextReceived(peerName, displayText);
           break;
@@ -185,15 +186,17 @@ export function sendTextMessage(peerId: string, text: string) {
   const conn = connections[peerId];
   if (conn?.dc && conn.dc.readyState === 'open') {
     conn.dc.send(serializeChannelMessage({ type: 'text', text: encodeWebText(text) }));
+    const peerName = peersStore.get()[peerId]?.displayName || 'Nearby Device';
     addTransferRecord({
       id: `sent-${Date.now()}`,
       peerId,
-      peerName: 'Nearby Device',
+      peerName,
       direction: 'sent',
-      name: text.slice(0, 30) + (text.length > 30 ? '...' : ''),
+      name: text.slice(0, 36) + (text.length > 36 ? '...' : ''),
       size: text.length,
       timestamp: Date.now(),
       status: 'completed',
+      textPayload: text,
     });
   }
 }

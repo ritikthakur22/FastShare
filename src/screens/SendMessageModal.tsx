@@ -18,7 +18,16 @@ export function SendMessageModal({ onSend, onCancel }: SendMessageModalProps) {
       <textarea
         value={text}
         onInput={(e) => setText((e.target as HTMLTextAreaElement).value)}
-        placeholder="Type a message or paste a link..."
+        onKeyDown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            if (text.trim()) {
+              onSend(text.trim());
+              setText('');
+            }
+          }
+        }}
+        placeholder="Type a message or paste a link (Ctrl + Enter to send)..."
         rows={4}
         maxLength={4000}
         style={{
@@ -36,7 +45,7 @@ export function SendMessageModal({ onSend, onCancel }: SendMessageModalProps) {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: '0.75rem', color: 'var(--fs-text-3)' }}>
-          {text.length} / 4000 characters
+          {text.length} / 4000 characters • Ctrl + Enter to send
         </span>
 
         <div style={{ display: 'flex', gap: '8px' }}>

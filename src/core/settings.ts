@@ -26,19 +26,39 @@ export interface SettingsState {
   autoRetry: boolean;
 }
 
+export const RANDOM_ONE_WORD_NAMES = [
+  'Falcon', 'Cheetah', 'Lynx', 'Fox', 'Hawk', 'Otter', 'Panda', 'Tiger',
+  'Eagle', 'Wolf', 'Dolphin', 'Jaguar', 'Koala', 'Bison', 'Raven', 'Seal',
+  'Puma', 'Badger', 'Gazelle', 'Leopard', 'Panther', 'Condor', 'Osprey', 'Cobra',
+  'Hornet', 'Viper', 'Orion', 'Apex', 'Titan', 'Cosmo', 'Echo', 'Nova',
+  'Blaze', 'Zenith', 'Atlas', 'Stellar', 'Vortex', 'Comet', 'Pulse', 'Shadow',
+];
+
+export function getRandomWordName(): string {
+  const idx = Math.floor(Math.random() * RANDOM_ONE_WORD_NAMES.length);
+  return RANDOM_ONE_WORD_NAMES[idx]!;
+}
+
 export function getDefaultDeviceName(): string {
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
   if (/Android/i.test(ua)) return 'Android Phone';
   if (/iPhone|iPad/i.test(ua)) return 'Apple Device';
-  if (/Mac/i.test(ua)) return 'MacBook';
-  if (/Windows/i.test(ua)) return 'Windows PC';
-  if (/Linux/i.test(ua)) return 'Linux PC';
-  return 'Web Device';
+  // Desktop/Laptop browsers get a unique, memorable one-word random name
+  return getRandomWordName();
 }
 
 function loadInitialSettings(): SettingsState {
   const theme = (localStorage.getItem('fs.theme') as SettingsState['theme']) || 'dark';
-  const deviceName = localStorage.getItem('fs.deviceName') || getDefaultDeviceName();
+  let deviceName = localStorage.getItem('fs.deviceName');
+  // Auto-upgrade generic desktop names to unique one-word random names
+  if (!deviceName || deviceName === 'Linux PC' || deviceName === 'Windows PC' || deviceName === 'Web Device') {
+    deviceName = getDefaultDeviceName();
+    try {
+      localStorage.setItem('fs.deviceName', deviceName);
+    } catch {
+      // ignore
+    }
+  }
   const deviceType = (localStorage.getItem('fs.deviceType') as DeviceType) || 'auto';
   const visibility = (localStorage.getItem('fs.visibility') as VisibilityMode) || 'everyone';
   const autoDownload = localStorage.getItem('fs.autoDownload') === 'true';

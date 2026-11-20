@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks';
 import { Icon, IconName } from '../ui/Icon';
 import { TransferRecord } from '../core/transfers';
 import { formatBytes } from '../protocol/format';
@@ -5,11 +6,17 @@ import { formatBytes } from '../protocol/format';
 interface RecentActivityPanelProps {
   history: TransferRecord[];
   onViewAll: () => void;
+  onSelectTransfer?: (item: TransferRecord) => void;
 }
 
-export function RecentActivityPanel({ history, onViewAll }: RecentActivityPanelProps) {
-  const getFileIcon = (name: string): IconName => {
-    const ext = name.split('.').pop()?.toLowerCase();
+export function RecentActivityPanel({ history, onViewAll, onSelectTransfer }: RecentActivityPanelProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const getFileIcon = (item: TransferRecord): IconName => {
+    if (item.textPayload || item.id.startsWith('msg-') || item.id.startsWith('sent-')) {
+      return 'description';
+    }
+    const ext = item.name.split('.').pop()?.toLowerCase();
     if (ext && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
     if (ext && ['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return 'movie';
     return 'description';
@@ -21,6 +28,18 @@ export function RecentActivityPanel({ history, onViewAll }: RecentActivityPanelP
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours} hr ago`;
     return `${Math.floor(diffHours / 24)} days ago`;
+  };
+
+  const handleCopy = async (e: MouseEvent, item: TransferRecord) => {
+    e.stopPropagation();
+    const content = item.textPayload || item.name;
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedId(item.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      // ignore
+    }
   };
 
   const items = history.slice(0, 5);
@@ -62,97 +81,130 @@ export function RecentActivityPanel({ history, onViewAll }: RecentActivityPanelP
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {items.length === 0 ? (
           <p style={{ fontSize: '0.85rem', color: 'var(--fs-text-3)', padding: '16px 0' }}>
-            No transfers yet. Drop files to get started.
+            No transfers yet. Drop files or send text to get started.
           </p>
         ) : (
-          items.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 12px',
-                borderRadius: 'var(--fs-radius-row)',
-                backgroundColor: 'var(--fs-surface)',
-                border: '1px solid var(--fs-separator)',
-                gap: '12px',
-              }}
-            >
-              {/* File Icon */}
+          items.map((item) => {
+            const isText = Boolean(item.textPayload) || item.id.startsWith('msg-') || item.id.startsWith('sent-');
+
+            return (
               <div
+                key={item.id}
+                onClick={() => onSelectTransfer?.(item)}
                 style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
-                  backgroundColor: 'var(--fs-surface-raised)',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
+                  justifyContent: 'space-between',
+                  padding: '10px 12px',
+                  borderRadius: 'var(--fs-radius-row)',
+                  backgroundColor: 'var(--fs-surface)',
+                  border: '1px solid var(--fs-separator)',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  transition: 'background-color var(--fs-transition-fast)',
                 }}
+                className="fs-hover-dim"
+                title="Tap to view note or transfer details"
               >
-                <Icon name={getFileIcon(item.name)} size={20} color="var(--fs-accent)" />
-              </div>
-
-              {/* File Info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p
+                {/* File Icon */}
+                <div
                   style={{
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    color: 'var(--fs-text)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    backgroundColor: 'var(--fs-surface-raised)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
                   }}
                 >
-                  {item.name}
-                </p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--fs-text-2)', marginTop: '2px' }}>
-                  {item.direction === 'sent' ? 'Sent' : 'Received'} • {formatBytes(item.size)}
-                </p>
-              </div>
+                  <Icon name={getFileIcon(item)} size={20} color="var(--fs-accent)" />
+                </div>
 
-              {/* Time and Status Badge */}
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--fs-text-3)', display: 'block' }}>
-                  {getTimeAgo(item.timestamp)}
-                </span>
-                <div style={{ marginTop: '2px', display: 'flex', justifyContent: 'flex-end' }}>
-                  {item.direction === 'sent' ? (
-                    <div
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        backgroundColor: '#10B981',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Icon name="check" size={10} color="#FFFFFF" />
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--fs-accent)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Icon name="arrow_down" size={10} color="var(--fs-on-accent)" />
-                    </div>
-                  )}
+                {/* File Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: 'var(--fs-text)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {item.name}
+                  </p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--fs-text-2)', marginTop: '2px' }}>
+                    {item.direction === 'sent' ? 'Sent' : 'Received'} • {formatBytes(item.size)}
+                  </p>
+                </div>
+
+                {/* 1-Tap Copy Button for Clipboard & Text Messages */}
+                {isText && (
+                  <button
+                    onClick={(e) => handleCopy(e, item)}
+                    title="Copy note to clipboard"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      backgroundColor: copiedId === item.id ? 'var(--fs-accent)' : 'var(--fs-bg)',
+                      border: '1px solid var(--fs-separator)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: copiedId === item.id ? 'var(--fs-on-accent)' : 'var(--fs-text-2)',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      transition: 'all var(--fs-transition-fast)',
+                    }}
+                  >
+                    <Icon name={copiedId === item.id ? 'check' : 'content_copy'} size={15} />
+                  </button>
+                )}
+
+                {/* Time and Status Badge */}
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--fs-text-3)', display: 'block' }}>
+                    {getTimeAgo(item.timestamp)}
+                  </span>
+                  <div style={{ marginTop: '2px', display: 'flex', justifyContent: 'flex-end' }}>
+                    {item.direction === 'sent' ? (
+                      <div
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          borderRadius: '50%',
+                          backgroundColor: '#10B981',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icon name="check" size={10} color="#FFFFFF" />
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--fs-accent)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icon name="arrow_down" size={10} color="var(--fs-on-accent)" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
