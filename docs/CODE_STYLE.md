@@ -8,7 +8,7 @@ Conventions for everyone writing code here. The folder layout and layer rules ar
 - **No speculative code:** no options, abstractions or "for later" hooks nobody asked for.
 - **No new dependency** without a reason in the PR ([SECURITY.md](SECURITY.md#dependency-policy)).
 - **Comments explain why**, in one line. Known shortcuts get `// shortcut: <the limit>, <when to upgrade>`.
-- **Clean room (W-001):** never paste code, CSS, strings, translations, sounds or images from the old site, PairDrop or Snapdrop. Files copied from the app start with a provenance line (W-007).
+- **Clean room (W-001):** never paste code, CSS, strings, translations, sounds or images from the legacy client. Files copied from the app start with a provenance line (W-007).
 
 ## TypeScript
 

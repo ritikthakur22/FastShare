@@ -34,17 +34,16 @@ If applicable, add screenshots to help explain your problem.
  - Browser [e.g. stock browser, safari]
  - Version [e.g. 22]
 
-**Bug occurs on official PairDrop instance https://pairdrop.net/**
+**Bug occurs on official FastShare instance https://fastshare.ritikthakur.com.np**
 No | Yes
-Version: v1.11.2
+Version: v2.0.0
 
-**Bug occurs on self-hosted PairDrop instance**
+**Bug occurs on self-hosted FastShare instance**
 No | Yes
 
 **Self-Hosted Setup**
-Proxy: Nginx | Apache2
-Deployment: docker run | docker compose | npm run start:prod
-Version: v1.11.2
+Deployment: docker run | docker compose | npm run start
+Version: v2.0.0
 
 **Additional context**
 Add any other context about the problem here.

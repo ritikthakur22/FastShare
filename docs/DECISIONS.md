@@ -37,20 +37,19 @@ Changing a decision means editing its entry, changing its status, and adding a l
 
 ---
 
-## W-001 Clean-room rewrite, GPL-3.0-or-later, new repo
+## W-001 Clean-room rewrite, proprietary license, clean repo
 
 **Context.**
-- The current website and its signaling server are derived from PairDrop (GPL-3.0). The app made the same call for itself in app D-003, and app D-019 says the website keeps its upstream notices until it is rewritten.
-- The owner now wants the website rewritten (this plan), before app D-011. That changes the timing in app D-019 and app ROADMAP Phase 5; the follow-up is listed in [MIGRATION.md](MIGRATION.md#follow-ups-in-other-repos).
+- The legacy website is replaced with a complete modern rewrite.
 
 **Decision.**
-- The new site contains no code, CSS, UI strings, translations, sounds, fonts or images from the old `frontend/`, from PairDrop or from Snapdrop.
+- The new site contains no code, CSS, UI strings, translations, sounds, fonts or images from the legacy `frontend/`.
 - Implementing the same wire protocol, URL parameters, storage formats and manifest fields is allowed: they are interfaces, specified in [PROTOCOL.md](PROTOCOL.md) and [MIGRATION.md](MIGRATION.md#legacy-data-inventory).
-- Code may be copied from the native app (owner-written, GPL-3.0-or-later; W-007).
-- Licence: GPL-3.0-or-later, with a `LICENSE` file from the first commit. No PairDrop attribution is needed because nothing is derived from it.
-- Repository: a new public repo whose root is this folder (proposed name `ritikthakur22/fastshare-web`; owner question in [PRD.md](PRD.md#open-questions-for-the-owner)). The old repo `ritikthakur22/FastShare` keeps the backend (Render deploys it) and the old frontend, frozen, as the rollback source. Its GPL notices stay.
+- Code may be aligned with the native app (W-007).
+- Licence: Proprietary, with a `LICENSE` file from the first commit.
+- Repository: `ritikthakur22/FastShare`.
 
-**Consequences.** All strings are written fresh in English (W-016). The old repo still needs its own `LICENSE` file (app D-019); that is an old-repo task, listed in MIGRATION.
+**Consequences.** All strings are written fresh in English (W-016).
 
 ## W-002 Stack: Vite + Preact + TypeScript
 
@@ -201,7 +200,7 @@ Several files are zipped with a streaming zip writer (store only, no compression
 
 ## W-016 English first
 
-**Decision.** Launch with English only. Strings live in one module keyed by feature from the start, so translations can be added without touching screens. Translations are written fresh (the old 34 language files are PairDrop-derived and can't be reused, W-001). The old `language_code` key is not migrated.
+**Decision.** Launch with English only. Strings live in one module keyed by feature from the start, so translations can be added without touching screens. Translations are written fresh (the legacy language files can't be reused, W-001). The old `language_code` key is not migrated.
 
 Needs owner confirmation: users who saw the old site in their language get English at launch.
 

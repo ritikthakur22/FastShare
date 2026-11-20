@@ -1,11 +1,10 @@
 .github
 .git*
 .idea
-dev
 docs
 licenses
 node_modules
-pairdrop-cli
+dist
 *.md
 *.yml
 Dockerfile

@@ -1,12 +1,12 @@
 # AGENTS.md
 
-**Start here.** This is the entry point for everyone working on the FastShare website, agents and human developers alike. Read this file fully, then the documents your task needs (table below), before changing anything.
+**Start here.** This is the entry point for everyone working on the FastShare website. Read this file fully, then the documents your task needs (table below), before changing anything.
 
 ## What this is
 
 The new FastShare website: the zero-install browser client of FastShare, at `https://fastshare.ritikthakur.com.np`. It sends files, text and links between devices with no account and no cloud storage; bytes go device to device over WebRTC.
 
-- It is a **clean rewrite** that replaces the current site (derived from PairDrop) at the same domain.
+- It is a **clean rewrite** that replaces the legacy client at the same domain.
 - It **looks like the native app** and takes its design from it.
 - It stays **wire-compatible** with the existing signaling server and with every other client: the new app, the old app 1.1.x and the old site.
 
@@ -56,7 +56,7 @@ Links to "app" docs in this repo are relative paths to `~/extra/fastshare-n/docs
 4. Check: `npm run typecheck && npm run lint && npm test && npm run test:e2e && npm run size`. For anything touching the network, storage, the service worker or migration, run the matching rows in [docs/TESTING.md](docs/TESTING.md) in real browsers.
 5. Update the task status, the owning doc of any behaviour you changed, and the status line here. Commit with a Conventional Commit message and no attribution lines.
 
-**What an agent cannot do alone:** approve the look (owner sign-off, app D-018), answer the open questions in the PRD, deploy to the production domain or change the Vercel project, change or deploy the signaling server (app D-010), edit the app repo or the old website repo, test on an iPhone.
+**What developers cannot do alone:** approve the look (owner sign-off, app D-018), answer the open questions in the PRD, deploy to the production domain or change the Vercel project, change or deploy the signaling server (app D-010), edit the app repo or the old website repo, test on an iPhone.
 
 ## Reading order by task
 
@@ -72,7 +72,7 @@ Links to "app" docs in this repo are relative paths to `~/extra/fastshare-n/docs
 
 1. **Wire compatibility** (W-006). Speak the deployed signaling API and data-channel protocol exactly: strict on send, tolerant on receive. Add nothing to the wire.
 2. **URL compatibility.** `/?pair_key=NNNNNN` and `/?room_id=xxxxx` keep working, always: the app's QR codes encode them ([PROTOCOL.md](docs/PROTOCOL.md#entry-points-and-links)).
-3. **Clean room** (W-001). No code, CSS, strings, translations, sounds or images from the old site, PairDrop or Snapdrop. Don't quote the old site's code in docs either. Never modify the old repo.
+3. **Clean room** (W-001). No code, CSS, strings, translations, sounds or images from the legacy site. Don't quote legacy code in docs either. Never modify the old repo.
 4. **Feature parity** with the old site ([MIGRATION.md](docs/MIGRATION.md#feature-parity-with-the-old-site)). Nothing is dropped or changed in meaning without the owner agreeing.
 5. **Transfers survive the network** (W-021). Never reset the signaling connection or a WebRTC link because of network-quality signals; reconnect only after a real disconnect; open links survive a signaling reconnect.
 6. **Files never touch a server; no analytics, trackers or third-party requests** (W-017).

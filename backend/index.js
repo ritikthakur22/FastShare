@@ -174,11 +174,11 @@ if (conf.autoStart) {
 }
 
 // Start server to serve client files
-const pairDropServer = new FastShareServer(conf);
+const fastShareServer = new FastShareServer(conf);
 
 if (!conf.signalingServer) {
     // Start websocket server if SIGNALING_SERVER is not set
-    new FastShareWsServer(pairDropServer.server, conf);
+    new FastShareWsServer(fastShareServer.server, conf);
 } else {
     console.log("This instance does not include a signaling server. Clients on this instance connect to the following signaling server:", conf.signalingServer);
 }

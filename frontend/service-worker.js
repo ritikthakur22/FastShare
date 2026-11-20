@@ -21,7 +21,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          // Clean up old caches including legacy fastshare-cache-* or pairdrop-*
+          // Clean up stale or previous caches
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }

@@ -6,7 +6,7 @@ How the new site replaces the deployed one at `https://fastshare.ritikthakur.com
 
 | Item | Finding |
 |---|---|
-| Code | `~/testing/websites-project/fastshare/frontend` (vanilla JavaScript, derived from PairDrop), repo `ritikthakur22/FastShare`. The same repo holds the signaling server (`backend/`), deployed on Render |
+| Code | `~/testing/websites-project/fastshare/frontend` (vanilla JavaScript, legacy client), repo `ritikthakur22/FastShare`. The same repo holds the signaling server (`backend/`), deployed on Render |
 | Live version | Vercel serves exactly repo HEAD `65334e2` (2026-11-05): the live `index.html` is identical to it. Service-worker cache `fastshare-cache-v1.1.22`. HSTS is sent (`max-age=63072000`); no CSP |
 | Uncommitted local changes | The owner's working copy has changes that are not deployed (a version label, autofocus attributes, a zoom lock in the viewport tag, the old app's offline-mode script). They belong to the owner: never touch that repo |
 | Render origin | `https://fastshare-ja1a.onrender.com/` also serves the old frontend, because the server serves `frontend/` as static files. After cut-over it stays available as an "old site" peer for interop tests (different origin, separate storage) |

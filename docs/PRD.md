@@ -6,7 +6,7 @@ Open a web page and send files, text and links to any nearby or paired device: n
 
 ## Problem
 
-- The current site works, but it is a PairDrop derivative with its own look, unlicensed copies of upstream code (app D-003), in-memory receiving that crashes on large files, and a cache-first service worker that keeps people on stale versions.
+- The legacy site works, but it has a dated look, in-memory receiving that crashes on large files, and a cache-first service worker that keeps people on stale versions.
 - The new native app has a clear identity (app D-018) and talks to the site over the same server. Users moving between app and site meet two different products.
 - The site is the zero-install client of FastShare (app D-019): for laptops without the app, for people who can't install apps, and for sending to an app user from any browser.
 
