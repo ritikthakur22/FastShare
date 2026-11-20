@@ -13,6 +13,16 @@ export interface PeerConnection {
 const connections: Record<string, PeerConnection> = {};
 let incomingFileHandlers: ((peerId: string, name: string, size: number) => void)[] = [];
 
+let currentRtcConfig: RTCConfiguration = {
+  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+};
+
+export function setRtcConfig(config: RTCConfiguration) {
+  if (config && config.iceServers) {
+    currentRtcConfig = config;
+  }
+}
+
 export function onIncomingFile(handler: (peerId: string, name: string, size: number) => void) {
   incomingFileHandlers.push(handler);
   return () => {
@@ -24,22 +34,26 @@ export function initWebRTC() {
   if (typeof window === 'undefined') return;
 
   onSignal(async (sender, message) => {
-    const data = message as { sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit };
     let conn = connections[sender];
     if (!conn) {
       conn = createPeerConnection(sender);
     }
 
-    if (data.sdp) {
-      await conn.pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-      if (data.sdp.type === 'offer') {
-        const answer = await conn.pc.createAnswer();
-        await conn.pc.setLocalDescription(answer);
-        sendSignal(sender, { sdp: conn.pc.localDescription });
-      }
-    } else if (data.candidate) {
+    if (message.sdp) {
       try {
-        await conn.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        await conn.pc.setRemoteDescription(new RTCSessionDescription(message.sdp));
+        if (message.sdp.type === 'offer') {
+          const answer = await conn.pc.createAnswer();
+          await conn.pc.setLocalDescription(answer);
+          sendSignal(sender, { sdp: conn.pc.localDescription });
+        }
+      } catch (err) {
+        console.error('Failed to handle SDP signal:', err);
+      }
+    } else if (message.candidate || message.ice) {
+      const cand = message.candidate || message.ice;
+      try {
+        await conn.pc.addIceCandidate(new RTCIceCandidate(cand!));
       } catch {
         // ignore candidate errors
       }
@@ -47,17 +61,16 @@ export function initWebRTC() {
   });
 }
 
-export function createPeerConnection(peerId: string): PeerConnection {
-  const pc = new RTCPeerConnection({
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-  });
+export function createPeerConnection(peerId: string, roomType = 'ip', roomId?: string): PeerConnection {
+  if (connections[peerId]) return connections[peerId];
 
+  const pc = new RTCPeerConnection(currentRtcConfig);
   const conn: PeerConnection = { pc };
   connections[peerId] = conn;
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
-      sendSignal(peerId, { candidate: event.candidate });
+      sendSignal(peerId, { candidate: event.candidate }, roomType, roomId);
     }
   };
 
@@ -76,18 +89,36 @@ export function createPeerConnection(peerId: string): PeerConnection {
   return conn;
 }
 
-export async function connectToPeer(peerId: string) {
+export function closePeerConnection(peerId: string) {
+  const conn = connections[peerId];
+  if (conn) {
+    try {
+      conn.dc?.close();
+      conn.pc.close();
+    } catch {
+      // ignore
+    }
+    delete connections[peerId];
+  }
+}
+
+export async function connectToPeer(peerId: string, roomType = 'ip', roomId?: string) {
   let conn = connections[peerId];
   if (!conn) {
-    conn = createPeerConnection(peerId);
+    conn = createPeerConnection(peerId, roomType, roomId);
   }
+  if (conn.pc.signalingState !== 'stable') return;
 
   const dc = conn.pc.createDataChannel('fastshare', { ordered: true });
   setupDataChannel(peerId, dc);
 
-  const offer = await conn.pc.createOffer();
-  await conn.pc.setLocalDescription(offer);
-  sendSignal(peerId, { sdp: conn.pc.localDescription });
+  try {
+    const offer = await conn.pc.createOffer();
+    await conn.pc.setLocalDescription(offer);
+    sendSignal(peerId, { sdp: conn.pc.localDescription }, roomType, roomId);
+  } catch (err) {
+    console.error('Failed to create offer:', err);
+  }
 }
 
 function setupDataChannel(peerId: string, dc: RTCDataChannel) {

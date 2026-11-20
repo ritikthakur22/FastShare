@@ -1,7 +1,8 @@
 import { createStore } from './store';
-import { parseServerMessage, serializeServerMessage } from '../protocol/server';
-import { setPeers, addPeer, removePeer } from './peers';
-import { settingsStore } from './settings';
+import { parseServerMessage } from '../protocol/server';
+import { setPeers, addPeer, removePeer, peersStore } from './peers';
+import { settingsStore, DEFAULT_SERVER_URL } from './settings';
+import { setRtcConfig, connectToPeer, createPeerConnection, closePeerConnection } from './rtc';
 
 export interface SignalingState {
   connected: boolean;
@@ -20,13 +21,41 @@ export const signalingStore = createStore<SignalingState>({
 let socket: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let reconnectAttempts = 0;
-let signalHandlers: ((sender: string, message: unknown) => void)[] = [];
+let signalHandlers: ((sender: string, message: { sdp?: RTCSessionDescriptionInit; ice?: RTCIceCandidateInit; candidate?: RTCIceCandidateInit }) => void)[] = [];
+let myPeerId: string | null = null;
 
-export function onSignal(handler: (sender: string, message: unknown) => void) {
+export function onSignal(
+  handler: (sender: string, message: { sdp?: RTCSessionDescriptionInit; ice?: RTCIceCandidateInit; candidate?: RTCIceCandidateInit }) => void
+) {
   signalHandlers.push(handler);
   return () => {
     signalHandlers = signalHandlers.filter((h) => h !== handler);
   };
+}
+
+function getStoredRoomSecrets(): string[] {
+  try {
+    const raw = localStorage.getItem('fs.room_secrets');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.filter((s) => typeof s === 'string');
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+export function saveRoomSecret(secret: string) {
+  const existing = getStoredRoomSecrets();
+  if (!existing.includes(secret)) {
+    existing.push(secret);
+    try {
+      localStorage.setItem('fs.room_secrets', JSON.stringify(existing));
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function connectSignaling() {
@@ -35,12 +64,29 @@ export function connectSignaling() {
     return;
   }
 
-  const { serverUrl, deviceName, deviceType } = settingsStore.get();
+  const { serverUrl, deviceType } = settingsStore.get();
   signalingStore.update((s) => ({ ...s, connecting: true, error: null }));
 
   try {
-    socket = new WebSocket(serverUrl);
-  } catch (err) {
+    const base = serverUrl || DEFAULT_SERVER_URL;
+    const url = new URL(base);
+    url.searchParams.set('webrtc_supported', 'true');
+
+    const storedPeerId = sessionStorage.getItem('peer_id');
+    const storedPeerIdHash = sessionStorage.getItem('peer_id_hash');
+    if (storedPeerId && storedPeerIdHash) {
+      url.searchParams.set('peer_id', storedPeerId);
+      url.searchParams.set('peer_id_hash', storedPeerIdHash);
+    }
+
+    if (deviceType === 'phone') {
+      url.searchParams.set('device_icon', 'phone-iphone');
+    } else if (deviceType === 'desktop') {
+      url.searchParams.set('device_icon', 'desktop-mac');
+    }
+
+    socket = new WebSocket(url.toString());
+  } catch {
     signalingStore.update((s) => ({ ...s, connecting: false, error: 'Failed to connect' }));
     scheduleReconnect();
     return;
@@ -49,16 +95,6 @@ export function connectSignaling() {
   socket.onopen = () => {
     reconnectAttempts = 0;
     signalingStore.update((s) => ({ ...s, connected: true, connecting: false, error: null }));
-
-    // Send join message
-    const joinMsg = serializeServerMessage({
-      type: 'join',
-      name: {
-        displayName: deviceName,
-        deviceName: deviceType === 'auto' ? 'Browser' : deviceType,
-      },
-    });
-    socket?.send(joinMsg);
   };
 
   socket.onmessage = (event) => {
@@ -68,20 +104,112 @@ export function connectSignaling() {
 
     switch (msg.type) {
       case 'ping':
-        socket?.send(serializeServerMessage({ type: 'pong' }));
+        socket?.send(JSON.stringify({ type: 'pong' }));
         break;
-      case 'peers':
-        setPeers(msg.peers);
+
+      case 'ws-config':
+        if (msg.wsConfig?.rtcConfig) {
+          setRtcConfig(msg.wsConfig.rtcConfig);
+        }
         break;
-      case 'peer-joined':
-        addPeer(msg.peer);
+
+      case 'display-name': {
+        myPeerId = msg.peerId;
+        try {
+          sessionStorage.setItem('peer_id', msg.peerId);
+          sessionStorage.setItem('peer_id_hash', msg.peerIdHash);
+        } catch {
+          // ignore
+        }
+        signalingStore.update((s) => ({
+          ...s,
+          peerId: msg.peerId,
+          connected: true,
+          connecting: false,
+        }));
+
+        // Join the IP room (nearby Wi-Fi devices)
+        socket?.send(JSON.stringify({ type: 'join-ip-room' }));
+
+        // Rejoin paired secret rooms
+        const secrets = getStoredRoomSecrets();
+        if (secrets.length > 0) {
+          socket?.send(JSON.stringify({ type: 'room-secrets', roomSecrets: secrets }));
+        }
+
+        // Rejoin public room if active
+        try {
+          const publicRoom = sessionStorage.getItem('public_room_id');
+          if (publicRoom) {
+            socket?.send(JSON.stringify({ type: 'join-public-room', publicRoomId: publicRoom, createIfInvalid: true }));
+          }
+        } catch {
+          // ignore
+        }
         break;
-      case 'peer-left':
+      }
+
+      case 'peers': {
+        const peers = (msg.peers || []).filter((p) => p.id !== myPeerId && p.rtcSupported !== false);
+        setPeers(peers, msg.roomType || 'ip', msg.roomId);
+
+        // We are the caller for every peer announced in 'peers'
+        for (const p of peers) {
+          connectToPeer(p.id, msg.roomType || 'ip', msg.roomId);
+        }
+        break;
+      }
+
+      case 'peer-joined': {
+        if (msg.peer && msg.peer.id !== myPeerId && msg.peer.rtcSupported !== false) {
+          addPeer(msg.peer, msg.roomType || 'ip', msg.roomId);
+          createPeerConnection(msg.peer.id, msg.roomType || 'ip', msg.roomId);
+        }
+        break;
+      }
+
+      case 'peer-left': {
         removePeer(msg.peerId);
+        closePeerConnection(msg.peerId);
         break;
-      case 'signal':
-        for (const handler of signalHandlers) {
-          handler(msg.sender, msg.message);
+      }
+
+      case 'signal': {
+        const senderId = typeof msg.sender === 'object' ? msg.sender.id : msg.sender;
+        if (senderId && senderId !== myPeerId) {
+          for (const handler of signalHandlers) {
+            handler(senderId, {
+              sdp: msg.sdp,
+              candidate: msg.candidate || msg.ice,
+              ice: msg.ice || msg.candidate,
+            });
+          }
+        }
+        break;
+      }
+
+      case 'pair-device-initiated':
+        break;
+
+      case 'pair-device-joined':
+        if (msg.roomSecret) {
+          saveRoomSecret(msg.roomSecret);
+        }
+        break;
+
+      case 'public-room-created':
+        try {
+          sessionStorage.setItem('public_room_id', msg.roomId);
+        } catch {
+          // ignore
+        }
+        break;
+
+      case 'public-room-left':
+        try {
+          sessionStorage.removeItem('public_room_id');
+        } catch {
+          // ignore
         }
         break;
     }
@@ -106,17 +234,34 @@ function scheduleReconnect() {
   }, backoff);
 }
 
-export function sendSignal(toPeerId: string, message: unknown) {
+export function sendSignal(
+  toPeerId: string,
+  signalData: { sdp?: unknown; candidate?: unknown; ice?: unknown },
+  roomType?: string,
+  roomId?: string
+) {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
-  const myId = signalingStore.get().peerId || 'self';
-  socket.send(
-    serializeServerMessage({
-      type: 'signal',
-      to: toPeerId,
-      sender: myId,
-      message,
-    })
-  );
+  const peer = peersStore.get()[toPeerId];
+  const targetRoomType = roomType || peer?.roomType || 'ip';
+  const targetRoomId = roomId || peer?.roomId;
+
+  const payload: Record<string, unknown> = {
+    type: 'signal',
+    to: toPeerId,
+    roomType: targetRoomType,
+  };
+  if (targetRoomId) payload.roomId = targetRoomId;
+  if (signalData.sdp) payload.sdp = signalData.sdp;
+  if (signalData.candidate) {
+    payload.candidate = signalData.candidate;
+    payload.ice = signalData.candidate;
+  }
+  if (signalData.ice) {
+    payload.ice = signalData.ice;
+    payload.candidate = signalData.ice;
+  }
+
+  socket.send(JSON.stringify(payload));
 }
 
 export function refreshConnection() {
@@ -126,21 +271,42 @@ export function refreshConnection() {
     } catch {
       // ignore
     }
+    socket = null;
   }
   connectSignaling();
 }
 
-export function pairDevice(pairKey: string) {
+export function pairDeviceInitiate() {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
-  socket.send(JSON.stringify({ type: 'pair-device', pairKey }));
+  socket.send(JSON.stringify({ type: 'pair-device-initiate' }));
 }
 
-export function joinRoom(roomId: string) {
+export function pairDeviceJoin(pairKey: string) {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
-  socket.send(JSON.stringify({ type: 'join-room', roomId }));
+  socket.send(JSON.stringify({ type: 'pair-device-join', pairKey }));
 }
 
-export function leaveRoom(roomId: string) {
+export function pairDeviceCancel() {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
-  socket.send(JSON.stringify({ type: 'leave-room', roomId }));
+  socket.send(JSON.stringify({ type: 'pair-device-cancel' }));
 }
+
+export function createPublicRoom() {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({ type: 'create-public-room' }));
+}
+
+export function joinPublicRoom(roomId: string) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  const lower = roomId.trim().toLowerCase();
+  socket.send(JSON.stringify({ type: 'join-public-room', publicRoomId: lower }));
+}
+
+export function leavePublicRoom(_roomId?: string) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({ type: 'leave-public-room' }));
+}
+
+export const pairDevice = pairDeviceJoin;
+export const joinRoom = joinPublicRoom;
+export const leaveRoom = leavePublicRoom;
