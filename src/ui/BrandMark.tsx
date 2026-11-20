@@ -1,0 +1,39 @@
+interface BrandMarkProps {
+  size?: number;
+  className?: string;
+}
+
+/** The "F" brand mark from the FastShare native app icon, drawn as pure vectors. */
+export function BrandMark({ size = 32, className = '' }: BrandMarkProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-label="FastShare Logo"
+    >
+      <defs>
+        <linearGradient id="fsStemGrad" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#1D63F0" />
+          <stop offset="60%" stop-color="#2F86FF" />
+          <stop offset="100%" stop-color="#62B8FF" />
+        </linearGradient>
+        <linearGradient id="fsBarGrad" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#1A47D6" />
+          <stop offset="100%" stop-color="#2E6BFF" />
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#fsStemGrad)"
+        d="M14.6 3.2H30.4L27 9H17.6Q15.2 9 13.9 11.2Q9.6 18.6 4.4 29.2Q3.6 29.8 3.8 28.6Q6.6 15.4 10 7.4Q11.6 3.2 14.6 3.2Z"
+      />
+      <path
+        fill="url(#fsBarGrad)"
+        d="M16.8 13.2H27L24 18.4H14.6Q13.2 18.4 13.8 17.2L15 14.6Q15.7 13.2 16.8 13.2Z"
+      />
+    </svg>
+  );
+}

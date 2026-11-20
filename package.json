@@ -1,22 +1,39 @@
 {
   "name": "fastshare",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "description": "Fast, private, peer-to-peer file and clipboard sharing across devices via WebRTC.",
   "main": "backend/index.js",
   "scripts": {
     "start": "node backend/index.js",
-    "start:prod": "node backend/index.js --rate-limit --auto-restart"
+    "start:prod": "node backend/index.js --rate-limit --auto-restart",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "author": "Ritik Thakur <https://www.ritikthakur.com.np>",
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
+    "client-zip": "^2.4.5",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
+    "preact": "^10.25.4",
     "puppeteer": "^25.5.0",
     "ua-parser-js": "^1.0.37",
     "unique-names-generator": "^4.3.0",
+    "uqr": "^0.1.2",
     "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.5",
+    "@testing-library/preact": "^3.2.4",
+    "@types/node": "^22.13.4",
+    "jsdom": "^26.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.1",
+    "vitest": "^3.0.5"
   },
   "engines": {
     "node": ">=15"
