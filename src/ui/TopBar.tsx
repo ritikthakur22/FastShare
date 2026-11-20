@@ -70,8 +70,8 @@ export function TopBar({
 
   return (
     <header
+      className="fs-top-bar"
       style={{
-        height: '64px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -82,13 +82,13 @@ export function TopBar({
       }}
     >
       {/* Device Info & Status Pill */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div className="fs-mobile-brand" style={{ display: 'none', alignItems: 'center', gap: '8px' }}>
-          <BrandMark size={26} />
-          <span style={{ fontSize: '1.15rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--fs-text)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+        <div className="fs-mobile-brand" style={{ display: 'none', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <BrandMark size={24} />
+          <span style={{ fontSize: '1.1rem', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--fs-text)' }}>
             FastShare
           </span>
-          <span style={{ color: 'var(--fs-separator)', marginLeft: '4px' }}>|</span>
+          <span style={{ color: 'var(--fs-separator)', marginLeft: '2px' }}>|</span>
         </div>
 
         <div
@@ -98,12 +98,13 @@ export function TopBar({
             borderRadius: '50%',
             backgroundColor: signaling.connected ? '#10B981' : '#F59E0B',
             boxShadow: signaling.connected ? '0 0 8px #10B981' : 'none',
+            flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: '0.9rem', color: 'var(--fs-text-2)', fontWeight: '500' }}>
+        <span className="fs-top-online-label" style={{ fontSize: '0.9rem', color: 'var(--fs-text-2)', fontWeight: '500' }}>
           {signaling.connected ? 'Online' : 'Connecting...'}
         </span>
-        <span style={{ color: 'var(--fs-separator)' }}>|</span>
+        <span className="fs-top-online-label" style={{ color: 'var(--fs-separator)' }}>|</span>
         <div
           onClick={onEditDeviceName}
           style={{
@@ -114,18 +115,29 @@ export function TopBar({
             padding: '4px 8px',
             borderRadius: '6px',
             transition: 'background-color var(--fs-transition-fast)',
+            minWidth: 0,
           }}
           className="fs-hover-dim"
         >
-          <span style={{ fontSize: '0.9rem', color: 'var(--fs-text)', fontWeight: '600' }}>
-            Device: {settings.deviceName}
+          <span
+            className="fs-top-device-name"
+            style={{
+              fontSize: '0.9rem',
+              color: 'var(--fs-text)',
+              fontWeight: '600',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {settings.deviceName}
           </span>
           <Icon name="edit" size={14} color="var(--fs-text-2)" />
         </div>
       </div>
 
       {/* Right Action Icons matching Native App Top Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         {/* Enable Notification Permission Button */}
         <IconButton
           title={
@@ -171,10 +183,12 @@ export function TopBar({
           <Icon name="link" size={18} />
         </IconButton>
 
-        {/* Settings Button */}
-        <IconButton title="Settings" size={36} onClick={onOpenSettings}>
-          <Icon name="settings" size={18} />
-        </IconButton>
+        {/* Settings Button (Desktop Only; on mobile it's in the floating bottom tab bar) */}
+        <div className="fs-top-settings-btn">
+          <IconButton title="Settings" size={36} onClick={onOpenSettings}>
+            <Icon name="settings" size={18} />
+          </IconButton>
+        </div>
       </div>
     </header>
   );

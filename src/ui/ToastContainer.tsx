@@ -15,6 +15,10 @@ export function ToastContainer() {
         return 'download';
       case 'incoming':
         return 'refresh';
+      case 'error':
+        return 'close';
+      case 'warning':
+        return 'info';
       default:
         return 'info';
     }
@@ -26,7 +30,10 @@ export function ToastContainer() {
       case 'received':
         return 'var(--fs-accent)';
       case 'incoming':
+      case 'warning':
         return 'var(--fs-warning)';
+      case 'error':
+        return 'var(--fs-danger)';
       default:
         return 'var(--fs-text)';
     }

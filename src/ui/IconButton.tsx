@@ -29,6 +29,8 @@ export function IconButton({
         justifyContent: 'center',
         width: `${size}px`,
         height: `${size}px`,
+        minWidth: `${size}px`,
+        minHeight: `${size}px`,
         borderRadius: '50%',
         backgroundColor: active ? 'var(--fs-accent-tint)' : 'var(--fs-surface)',
         color: active ? 'var(--fs-accent)' : 'var(--fs-text)',
@@ -36,6 +38,8 @@ export function IconButton({
         cursor: 'pointer',
         transition: 'all var(--fs-transition-fast)',
         flexShrink: 0,
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent',
       }}
     >
       {children}

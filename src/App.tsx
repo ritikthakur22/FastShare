@@ -13,6 +13,8 @@ import { AdvancedSettingsModal } from './screens/AdvancedSettingsModal';
 import { SendSheet } from './screens/SendSheet';
 import { IncomingTransferSheet, IncomingTransferRequest } from './screens/IncomingTransferSheet';
 import { ClipboardModal } from './screens/ClipboardModal';
+import { parseEntryLink } from './protocol/links';
+import { joinPairing, joinPublicRoom } from './core/rooms';
 import { useStore } from './core/useStore';
 import { settingsStore, updateSettings } from './core/settings';
 import { peersStore, DiscoveredPeer } from './core/peers';
@@ -58,6 +60,23 @@ export function App() {
   useEffect(() => {
     connectSignaling();
     initWebRTC();
+
+    // Parse URL entry points (?pair_key=NNNNNN or ?room_id=xxxxx)
+    try {
+      const entry = parseEntryLink(window.location.href);
+      if (entry) {
+        window.history.replaceState({}, '', window.location.pathname);
+        if (entry.type === 'pair') {
+          joinPairing(entry.key);
+          setIsLinkDevicesOpen(true);
+        } else if (entry.type === 'room') {
+          joinPublicRoom(entry.roomId);
+          setIsLinkDevicesOpen(true);
+        }
+      }
+    } catch {
+      // ignore
+    }
 
     return onIncomingFile((peerId, name, size) => {
       const peer = peersStore.get()[peerId];

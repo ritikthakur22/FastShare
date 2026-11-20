@@ -53,6 +53,7 @@ export function Sheet({ open, onClose, title, children, maxWidth = '540px' }: Sh
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();
       }}
+      className="fs-sheet-dialog"
       style={{
         border: 'none',
         borderRadius: 'var(--fs-radius-sheet)',
@@ -67,6 +68,9 @@ export function Sheet({ open, onClose, title, children, maxWidth = '540px' }: Sh
         overflow: 'hidden',
       }}
     >
+      {/* Mobile top drag handle */}
+      <div className="fs-sheet-drag-handle" />
+
       <div
         style={{
           display: 'flex',
@@ -77,15 +81,16 @@ export function Sheet({ open, onClose, title, children, maxWidth = '540px' }: Sh
         }}
       >
         <h2 id={titleId} style={{ fontSize: '1.2rem', fontWeight: '600' }}>{title}</h2>
-        <IconButton size={34} onClick={onClose} title="Close">
+        <IconButton size={36} onClick={onClose} title="Close">
           <Icon name="close" size={18} />
         </IconButton>
       </div>
 
       <div
+        className="fs-sheet-content"
         style={{
           padding: '20px',
-          maxHeight: '75vh',
+          maxHeight: 'min(78dvh, 600px)',
           overflowY: 'auto',
         }}
       >

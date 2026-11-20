@@ -66,15 +66,34 @@ export type ServerClientMessage =
       roomSecret: string;
     }
   | {
+      type: 'pair-device-join-key-invalid';
+    }
+  | {
       type: 'pair-device-canceled';
       pairKey?: string;
+    }
+  | {
+      type: 'join-key-rate-limit';
     }
   | {
       type: 'public-room-created';
       roomId: string;
     }
   | {
+      type: 'public-room-id-invalid';
+      publicRoomId?: string;
+    }
+  | {
       type: 'public-room-left';
+    }
+  | {
+      type: 'secret-room-deleted';
+      roomSecret?: string;
+    }
+  | {
+      type: 'room-secret-regenerated';
+      oldRoomSecret?: string;
+      newRoomSecret?: string;
     }
   | {
       type: 'ping';
@@ -156,19 +175,43 @@ export function parseServerMessage(raw: string): ServerClientMessage | null {
           peerId: String(data.peerId),
           roomSecret: String(data.roomSecret),
         };
+      case 'pair-device-join-key-invalid':
+        return {
+          type: 'pair-device-join-key-invalid',
+        };
       case 'pair-device-canceled':
         return {
           type: 'pair-device-canceled',
           pairKey: data.pairKey,
+        };
+      case 'join-key-rate-limit':
+        return {
+          type: 'join-key-rate-limit',
         };
       case 'public-room-created':
         return {
           type: 'public-room-created',
           roomId: String(data.roomId),
         };
+      case 'public-room-id-invalid':
+        return {
+          type: 'public-room-id-invalid',
+          publicRoomId: typeof data.publicRoomId === 'string' ? data.publicRoomId : undefined,
+        };
       case 'public-room-left':
         return {
           type: 'public-room-left',
+        };
+      case 'secret-room-deleted':
+        return {
+          type: 'secret-room-deleted',
+          roomSecret: typeof data.roomSecret === 'string' ? data.roomSecret : undefined,
+        };
+      case 'room-secret-regenerated':
+        return {
+          type: 'room-secret-regenerated',
+          oldRoomSecret: typeof data.oldRoomSecret === 'string' ? data.oldRoomSecret : undefined,
+          newRoomSecret: typeof data.newRoomSecret === 'string' ? data.newRoomSecret : undefined,
         };
       case 'ping':
         return { type: 'ping' };

@@ -38,11 +38,13 @@ export function FloatingTabBar({ activeTab, onSelectTab }: FloatingTabBarProps) 
           <button
             key={tab.id}
             onClick={() => onSelectTab(tab.id)}
+            className="fs-tab-btn"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               padding: '10px 18px',
+              minHeight: '44px',
               borderRadius: 'var(--fs-radius-pill)',
               backgroundColor: isActive ? 'var(--fs-accent-tint)' : 'transparent',
               color: isActive ? 'var(--fs-accent)' : 'var(--fs-text-2)',
@@ -51,6 +53,8 @@ export function FloatingTabBar({ activeTab, onSelectTab }: FloatingTabBarProps) 
               border: 'none',
               cursor: 'pointer',
               transition: 'all var(--fs-transition-fast)',
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
             }}
           >
             <Icon name={tab.icon} size={20} color={isActive ? 'var(--fs-accent)' : 'var(--fs-text-2)'} />

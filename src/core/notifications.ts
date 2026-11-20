@@ -3,7 +3,7 @@ import { settingsStore } from './settings';
 
 export interface InAppToast {
   id: string;
-  type: 'sent' | 'received' | 'incoming' | 'info';
+  type: 'sent' | 'received' | 'incoming' | 'info' | 'error' | 'warning';
   title: string;
   message?: string;
   duration?: number;
