@@ -236,6 +236,7 @@ export function App() {
               }}
               onViewAllActivity={() => setActiveTab('activity')}
               onRefresh={refreshConnection}
+              onOpenLinkDevices={() => setIsLinkDevicesOpen(true)}
             />
           )}
 

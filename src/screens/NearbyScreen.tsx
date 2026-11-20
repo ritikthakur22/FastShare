@@ -18,6 +18,7 @@ interface NearbyScreenProps {
   onSendMessageClick: () => void;
   onViewAllActivity: () => void;
   onRefresh: () => void;
+  onOpenLinkDevices?: () => void;
 }
 
 export function NearbyScreen({
@@ -31,6 +32,7 @@ export function NearbyScreen({
   onSendMessageClick,
   onViewAllActivity,
   onRefresh,
+  onOpenLinkDevices,
 }: NearbyScreenProps) {
   const [isWindowDragOver, setIsWindowDragOver] = useState(false);
 
@@ -83,6 +85,7 @@ export function NearbyScreen({
           peers={peers}
           onSelectPeerForSend={onSelectPeerForSend}
           onRefresh={onRefresh}
+          onOpenLinkDevices={onOpenLinkDevices}
         />
 
         {/* Full-screen Drop Overlay when dragging files onto Radar */}

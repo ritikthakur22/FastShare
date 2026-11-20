@@ -1,5 +1,6 @@
 import { updatePeerState, updatePeerName, peersStore } from './peers';
 import { parseChannelMessage, serializeChannelMessage } from '../protocol/channel';
+import { encodeWebText, decodeWebText } from '../protocol/webText';
 import { addTransferRecord, updateActiveTransfer } from './transfers';
 import { sendSignal, onSignal } from './signaling';
 import { settingsStore } from './settings';
@@ -143,17 +144,18 @@ function setupDataChannel(peerId: string, dc: RTCDataChannel) {
           break;
         case 'text': {
           const peerName = peersStore.get()[peerId]?.displayName || 'Nearby Device';
+          const displayText = decodeWebText(msg.text) ?? msg.text;
           addTransferRecord({
             id: `msg-${Date.now()}`,
             peerId,
             peerName,
             direction: 'received',
-            name: msg.text.slice(0, 30) + (msg.text.length > 30 ? '...' : ''),
-            size: msg.text.length,
+            name: displayText.slice(0, 30) + (displayText.length > 30 ? '...' : ''),
+            size: displayText.length,
             timestamp: Date.now(),
             status: 'completed',
           });
-          notifyTextReceived(peerName, msg.text);
+          notifyTextReceived(peerName, displayText);
           break;
         }
         case 'header': {
@@ -182,7 +184,7 @@ function setupDataChannel(peerId: string, dc: RTCDataChannel) {
 export function sendTextMessage(peerId: string, text: string) {
   const conn = connections[peerId];
   if (conn?.dc && conn.dc.readyState === 'open') {
-    conn.dc.send(serializeChannelMessage({ type: 'text', text }));
+    conn.dc.send(serializeChannelMessage({ type: 'text', text: encodeWebText(text) }));
     addTransferRecord({
       id: `sent-${Date.now()}`,
       peerId,

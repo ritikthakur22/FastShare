@@ -6,6 +6,7 @@ interface RadarProps {
   peers: DiscoveredPeer[];
   onSelectPeerForSend: (peer: DiscoveredPeer) => void;
   onRefresh: () => void;
+  onOpenLinkDevices?: () => void;
 }
 
 // Polar slots matching native app: [radius factor (0..1), angle in degrees]
@@ -18,9 +19,11 @@ const RADAR_SLOTS = [
   { rFactor: 0.77, angle: 90 },   // Outer ring (0.77), top
 ];
 
-export function Radar({ peers, onSelectPeerForSend, onRefresh }: RadarProps) {
+export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices }: RadarProps) {
   const [selectedPeerId, setSelectedPeerId] = useState<string | null>(null);
   const activePeers: DiscoveredPeer[] = peers;
+  const radarPeers = activePeers.slice(0, RADAR_SLOTS.length);
+  const overflowPeers = activePeers.slice(RADAR_SLOTS.length);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const [stageSize, setStageSize] = useState<number>(() => {
@@ -222,7 +225,7 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh }: RadarProps) {
           )}
 
           {/* Discovered Peer Nodes placed along rings */}
-          {activePeers.map((peer, idx) => {
+          {radarPeers.map((peer, idx) => {
             const slot = RADAR_SLOTS[idx % RADAR_SLOTS.length];
             const rad = (slot.angle * Math.PI) / 180;
             const slotRadius = slot.rFactor * stageRadius;
@@ -420,6 +423,129 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh }: RadarProps) {
           })}
         </div>
       </div>
+
+      {/* Overflow devices beyond the 6-slot radar rings (matching native app DeviceRow list) */}
+      {overflowPeers.length > 0 && (
+        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--fs-text)' }}>
+              More Nearby Devices ({overflowPeers.length})
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--fs-text-3)' }}>
+              Tap to send
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {overflowPeers.map((peer) => {
+              const isWifi = peer.ipNetwork !== false;
+              const isLaptop =
+                peer.displayName.toLowerCase().includes('pc') ||
+                peer.deviceName.toLowerCase().includes('chrome') ||
+                peer.displayName.toLowerCase().includes('laptop');
+
+              return (
+                <div
+                  key={peer.id}
+                  onClick={() => onSelectPeerForSend(peer)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    backgroundColor: 'var(--fs-surface)',
+                    border: '1px solid var(--fs-separator)',
+                    borderRadius: 'var(--fs-radius-row)',
+                    cursor: 'pointer',
+                    transition: 'background-color var(--fs-transition-fast)',
+                  }}
+                  className="fs-hover-dim"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--fs-bg)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--fs-text)',
+                      }}
+                    >
+                      <Icon name={isLaptop ? 'laptop' : 'smartphone'} size={18} />
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.88rem', fontWeight: '600', color: 'var(--fs-text)' }}>
+                        {peer.displayName}
+                      </span>
+                      <p style={{ fontSize: '0.72rem', color: isWifi ? 'var(--fs-accent)' : 'var(--fs-text-2)', marginTop: '1px' }}>
+                        {isWifi ? 'Wi-Fi' : 'Internet'} • {peer.deviceName}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 'var(--fs-radius-pill)',
+                      backgroundColor: 'var(--fs-accent-tint)',
+                      color: 'var(--fs-accent)',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Send
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 8+ Devices High-Density Advisory Solution */}
+          {activePeers.length >= 8 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+                padding: '10px 14px',
+                backgroundColor: 'var(--fs-accent-tint)',
+                borderRadius: 'var(--fs-radius-row)',
+                marginTop: '6px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <Icon name="info" size={16} color="var(--fs-accent)" />
+                <span style={{ fontSize: '0.78rem', color: 'var(--fs-text)', lineHeight: 1.3 }}>
+                  Crowded Wi-Fi ({activePeers.length} devices). Pair devices directly or create a private room for faster transfers.
+                </span>
+              </div>
+              {onOpenLinkDevices && (
+                <button
+                  onClick={onOpenLinkDevices}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 'var(--fs-radius-pill)',
+                    backgroundColor: 'var(--fs-surface)',
+                    border: '1px solid var(--fs-separator)',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    color: 'var(--fs-accent)',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  Link
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { generateConnectionCode } from './connectionCode';
 import { parseEntryLink } from './links';
 import { parseServerMessage, serializeServerMessage } from './server';
 import { parseChannelMessage, serializeChannelMessage } from './channel';
+import { encodeWebText, decodeWebText } from './webText';
 
 describe('Protocol Codecs & Sanitization', () => {
   it('sanitizes file names safely, stripping directory traversal and direction-override characters', () => {
@@ -39,7 +40,18 @@ describe('Protocol Codecs & Sanitization', () => {
     expect(code1).toMatch(/^\d{4,6}$/);
   });
 
-  it('parses URL query parameters for pair_key and room_id', () => {
+  it('encodes and decodes UTF-8 text messages to base64 for wire compatibility', () => {
+    const original = 'Hello World! 🚀 fastshare text test with emoji & unicode: नेपाली';
+    const encoded = encodeWebText(original);
+    expect(encoded).not.toBe(original);
+    expect(/^[A-Za-z0-9+/=]+$/.test(encoded)).toBe(true);
+
+    const decoded = decodeWebText(encoded);
+    expect(decoded).toBe(original);
+  });
+
+  it('parses URL query parameters and dynamic routes for pair_key and room_id', () => {
+    // Query parameters
     expect(parseEntryLink('https://fastshare.ritikthakur.com.np/?pair_key=123456')).toEqual({
       type: 'pair',
       key: '123456',
@@ -48,6 +60,17 @@ describe('Protocol Codecs & Sanitization', () => {
     expect(parseEntryLink('https://fastshare.ritikthakur.com.np/?room_id=testroom')).toEqual({
       type: 'room',
       roomId: 'testroom',
+    });
+
+    // Dynamic paths
+    expect(parseEntryLink('https://fastshare.ritikthakur.com.np/pair/123456')).toEqual({
+      type: 'pair',
+      key: '123456',
+    });
+
+    expect(parseEntryLink('https://fastshare.ritikthakur.com.np/room/myroom')).toEqual({
+      type: 'room',
+      roomId: 'myroom',
     });
 
     expect(parseEntryLink('https://fastshare.ritikthakur.com.np/')).toBeNull();
