@@ -155,14 +155,18 @@ export function leavePublicRoom() {
   roomStore.set({ phase: 'none' });
 }
 
+export function rejoinRoomSecrets() {
+  const secrets = getStoredRoomSecrets();
+  if (secrets.length > 0) {
+    serverSend?.({ type: 'room-secrets', roomSecrets: secrets });
+  }
+}
+
 export function handleRoomServerMessage(msg: ServerClientMessage) {
   switch (msg.type) {
     case 'display-name': {
       // Rejoin all stored room secrets
-      const secrets = getStoredRoomSecrets();
-      if (secrets.length > 0) {
-        serverSend?.({ type: 'room-secrets', roomSecrets: secrets });
-      }
+      rejoinRoomSecrets();
       // Rejoin public room if active
       try {
         const publicRoom = sessionStorage.getItem(SESSION_PUBLIC_ROOM_KEY);

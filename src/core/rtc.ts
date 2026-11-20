@@ -3,7 +3,7 @@ import { parseChannelMessage, serializeChannelMessage } from '../protocol/channe
 import { encodeWebText, decodeWebText } from '../protocol/webText';
 import { addTransferRecord, updateActiveTransfer } from './transfers';
 import { sendSignal, onSignal } from './signaling';
-import { settingsStore } from './settings';
+import { settingsStore, DEFAULT_ICE_SERVERS } from './settings';
 import { notifyTextReceived } from './notifications';
 
 export interface PeerConnection {
@@ -15,12 +15,28 @@ const connections: Record<string, PeerConnection> = {};
 let incomingFileHandlers: ((peerId: string, name: string, size: number) => void)[] = [];
 
 let currentRtcConfig: RTCConfiguration = {
-  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+  iceServers: DEFAULT_ICE_SERVERS.map((url) => ({ urls: url })),
 };
 
 export function setRtcConfig(config: RTCConfiguration) {
-  if (config && config.iceServers) {
-    currentRtcConfig = config;
+  if (config && Array.isArray(config.iceServers) && config.iceServers.length > 0) {
+    const urls = new Set<string>();
+    const merged: RTCIceServer[] = [];
+    for (const s of config.iceServers) {
+      if (typeof s.urls === 'string') {
+        urls.add(s.urls);
+        merged.push(s);
+      } else if (Array.isArray(s.urls)) {
+        for (const u of s.urls) urls.add(u);
+        merged.push(s);
+      }
+    }
+    for (const fallback of DEFAULT_ICE_SERVERS) {
+      if (!urls.has(fallback)) {
+        merged.push({ urls: fallback });
+      }
+    }
+    currentRtcConfig = { ...config, iceServers: merged };
   }
 }
 
@@ -35,9 +51,13 @@ export function initWebRTC() {
   if (typeof window === 'undefined') return;
 
   onSignal(async (sender, message) => {
+    const peer = peersStore.get()[sender];
+    const rType = message.roomType || peer?.roomType;
+    const rId = message.roomId || peer?.roomId;
+
     let conn = connections[sender];
     if (!conn) {
-      conn = createPeerConnection(sender);
+      conn = createPeerConnection(sender, rType, rId);
     }
 
     if (message.sdp) {
@@ -46,7 +66,7 @@ export function initWebRTC() {
         if (message.sdp.type === 'offer') {
           const answer = await conn.pc.createAnswer();
           await conn.pc.setLocalDescription(answer);
-          sendSignal(sender, { sdp: conn.pc.localDescription });
+          sendSignal(sender, { sdp: conn.pc.localDescription }, rType, rId);
         }
       } catch (err) {
         console.error('Failed to handle SDP signal:', err);
@@ -62,7 +82,7 @@ export function initWebRTC() {
   });
 }
 
-export function createPeerConnection(peerId: string, roomType = 'ip', roomId?: string): PeerConnection {
+export function createPeerConnection(peerId: string, roomType?: string, roomId?: string): PeerConnection {
   if (connections[peerId]) return connections[peerId];
 
   const pc = new RTCPeerConnection(currentRtcConfig);
@@ -71,7 +91,10 @@ export function createPeerConnection(peerId: string, roomType = 'ip', roomId?: s
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
-      sendSignal(peerId, { candidate: event.candidate }, roomType, roomId);
+      const p = peersStore.get()[peerId];
+      const rType = (p?.roomType && p.roomType !== 'ip') ? p.roomType : (roomType || p?.roomType || 'ip');
+      const rId = (p?.roomType && p.roomType !== 'ip') ? (p.roomId || roomId) : (roomId || p?.roomId);
+      sendSignal(peerId, { candidate: event.candidate }, rType, rId);
     }
   };
 
@@ -103,20 +126,24 @@ export function closePeerConnection(peerId: string) {
   }
 }
 
-export async function connectToPeer(peerId: string, roomType = 'ip', roomId?: string) {
+export async function connectToPeer(peerId: string, roomType?: string, roomId?: string) {
+  const peer = peersStore.get()[peerId];
+  const resolvedRoomType = (peer?.roomType && peer.roomType !== 'ip') ? peer.roomType : (roomType || peer?.roomType || 'ip');
+  const resolvedRoomId = (peer?.roomType && peer.roomType !== 'ip') ? (peer.roomId || roomId) : (roomId || peer?.roomId);
+
   let conn = connections[peerId];
   if (!conn) {
-    conn = createPeerConnection(peerId, roomType, roomId);
+    conn = createPeerConnection(peerId, resolvedRoomType, resolvedRoomId);
   }
   if (conn.pc.signalingState !== 'stable') return;
 
-  const dc = conn.pc.createDataChannel('fastshare', { ordered: true });
+  const dc = conn.pc.createDataChannel('data-channel', { ordered: true });
   setupDataChannel(peerId, dc);
 
   try {
     const offer = await conn.pc.createOffer();
     await conn.pc.setLocalDescription(offer);
-    sendSignal(peerId, { sdp: conn.pc.localDescription }, roomType, roomId);
+    sendSignal(peerId, { sdp: conn.pc.localDescription }, resolvedRoomType, resolvedRoomId);
   } catch (err) {
     console.error('Failed to create offer:', err);
   }

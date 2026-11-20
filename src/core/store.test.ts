@@ -74,4 +74,20 @@ describe('Reactive Stores', () => {
     expect(items[0].name).toBe('wallpaper.jpg');
     expect(items[0].direction).toBe('sent');
   });
+
+  it('provides random names from the curated Nepali name list', async () => {
+    const { RANDOM_ONE_WORD_NAMES, getRandomWordName, getDefaultDeviceName } = await import('./settings');
+    expect(RANDOM_ONE_WORD_NAMES).toContain('Prince');
+    expect(RANDOM_ONE_WORD_NAMES).toContain('Ritik');
+    expect(RANDOM_ONE_WORD_NAMES).toContain('Richa');
+    expect(RANDOM_ONE_WORD_NAMES).toContain('Bikash');
+    expect(RANDOM_ONE_WORD_NAMES).toContain('Sneha');
+    expect(RANDOM_ONE_WORD_NAMES).toContain('Sujan');
+
+    const rand = getRandomWordName();
+    expect(RANDOM_ONE_WORD_NAMES).toContain(rand);
+
+    const def = getDefaultDeviceName();
+    expect(RANDOM_ONE_WORD_NAMES).toContain(def);
+  });
 });

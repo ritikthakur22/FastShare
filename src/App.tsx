@@ -21,6 +21,7 @@ import { peersStore, DiscoveredPeer } from './core/peers';
 import { transfersStore, addTransferRecord } from './core/transfers';
 import { connectSignaling, refreshConnection } from './core/signaling';
 import { initWebRTC, sendTextMessage, sendFilesToPeer, onIncomingFile } from './core/rtc';
+import { migrateLegacyData } from './core/migration';
 import { notifyFilesSent, notifyFileReceived, notifyTextSent, notifyIncomingTransfer } from './core/notifications';
 import { TransferDetailModal } from './screens/TransferDetailModal';
 import { TransferRecord } from './core/transfers';
@@ -81,6 +82,7 @@ export function App() {
   };
 
   useEffect(() => {
+    migrateLegacyData();
     connectSignaling();
     initWebRTC();
 

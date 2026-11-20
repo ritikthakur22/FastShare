@@ -7,6 +7,8 @@ export type VisibilityMode = 'everyone' | 'paired';
 export const DEFAULT_SERVER_URL = 'wss://fastshare-ja1a.onrender.com/server';
 export const DEFAULT_ICE_SERVERS = [
   'stun:stun.l.google.com:19302',
+  'stun:stun1.l.google.com:19302',
+  'stun:stun2.l.google.com:19302',
   'stun:global.stun.twilio.com:3478',
 ];
 
@@ -27,11 +29,13 @@ export interface SettingsState {
 }
 
 export const RANDOM_ONE_WORD_NAMES = [
-  'Falcon', 'Cheetah', 'Lynx', 'Fox', 'Hawk', 'Otter', 'Panda', 'Tiger',
-  'Eagle', 'Wolf', 'Dolphin', 'Jaguar', 'Koala', 'Bison', 'Raven', 'Seal',
-  'Puma', 'Badger', 'Gazelle', 'Leopard', 'Panther', 'Condor', 'Osprey', 'Cobra',
-  'Hornet', 'Viper', 'Orion', 'Apex', 'Titan', 'Cosmo', 'Echo', 'Nova',
-  'Blaze', 'Zenith', 'Atlas', 'Stellar', 'Vortex', 'Comet', 'Pulse', 'Shadow',
+  'Prince', 'Aadarsh', 'Richa', 'Bikash', 'Aayush', 'Prem', 'Aaditya',
+  'Prashant', 'Pratik', 'Pratyush', 'Radium', 'Ranjan', 'Rijan', 'Ritik',
+  'Riya', 'Rohit', 'Rosha', 'Sachin', 'Saksham', 'Sakshyam', 'Samar',
+  'Samir', 'Sanjiban', 'Saroj', 'Saugat', 'Saurav', 'Saurya', 'Seemon',
+  'Shailesh', 'Sharamsh', 'Shyam', 'Sneha', 'Sourav', 'Sovana', 'Subash',
+  'Subechhya', 'Subham', 'Sujan', 'Sumina', 'Sumiran', 'Sumit', 'Sushant',
+  'Sushil', 'Suyog', 'Swikriti', 'Utsav', 'Utsuk',
 ];
 
 export function getRandomWordName(): string {
@@ -40,24 +44,45 @@ export function getRandomWordName(): string {
 }
 
 export function getDefaultDeviceName(): string {
-  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-  if (/Android/i.test(ua)) return 'Android Phone';
-  if (/iPhone|iPad/i.test(ua)) return 'Apple Device';
-  // Desktop/Laptop browsers get a unique, memorable one-word random name
   return getRandomWordName();
 }
 
 function loadInitialSettings(): SettingsState {
   const theme = (localStorage.getItem('fs.theme') as SettingsState['theme']) || 'dark';
-  let deviceName = localStorage.getItem('fs.deviceName');
-  // Auto-upgrade generic desktop names to unique one-word random names
-  if (!deviceName || deviceName === 'Linux PC' || deviceName === 'Windows PC' || deviceName === 'Web Device') {
-    deviceName = getDefaultDeviceName();
+
+  // Check if user explicitly renamed their device in Settings
+  const explicitCustomName = localStorage.getItem('fs.customDeviceName');
+
+  let sessionName: string | null = null;
+  try {
+    sessionName = sessionStorage.getItem('fs.sessionDeviceName');
+  } catch {
+    // ignore
+  }
+
+  let deviceName: string;
+  if (explicitCustomName && explicitCustomName.trim()) {
+    deviceName = explicitCustomName.trim();
+  } else if (sessionName && sessionName.trim()) {
+    deviceName = sessionName.trim();
+  } else {
+    // Every new tab or visit gets a fresh random name from user's custom dictionary
+    deviceName = getRandomWordName();
     try {
-      localStorage.setItem('fs.deviceName', deviceName);
+      sessionStorage.setItem('fs.sessionDeviceName', deviceName);
     } catch {
       // ignore
     }
+  }
+
+  // Auto-upgrade generic desktop names to unique one-word random names
+  try {
+    const legacy = localStorage.getItem('fs.deviceName');
+    if (legacy && (legacy.includes('PC') || legacy.includes('Device') || legacy.includes('Phone') || legacy === 'Linux PC' || legacy === 'Windows PC')) {
+      localStorage.removeItem('fs.deviceName');
+    }
+  } catch {
+    // ignore
   }
   const deviceType = (localStorage.getItem('fs.deviceType') as DeviceType) || 'auto';
   const visibility = (localStorage.getItem('fs.visibility') as VisibilityMode) || 'everyone';
@@ -151,7 +176,28 @@ export function updateSettings(partial: Partial<SettingsState>) {
   settingsStore.update((curr) => {
     const next = { ...curr, ...partial };
     if (partial.theme !== undefined) localStorage.setItem('fs.theme', next.theme);
-    if (partial.deviceName !== undefined) localStorage.setItem('fs.deviceName', next.deviceName);
+    if (partial.deviceName !== undefined) {
+      const clean = partial.deviceName.trim();
+      if (clean) {
+        localStorage.setItem('fs.customDeviceName', clean);
+        localStorage.setItem('fs.deviceName', clean);
+        try {
+          sessionStorage.setItem('fs.sessionDeviceName', clean);
+        } catch {
+          // ignore
+        }
+      } else {
+        localStorage.removeItem('fs.customDeviceName');
+        localStorage.removeItem('fs.deviceName');
+        const fresh = getRandomWordName();
+        try {
+          sessionStorage.setItem('fs.sessionDeviceName', fresh);
+        } catch {
+          // ignore
+        }
+        next.deviceName = fresh;
+      }
+    }
     if (partial.deviceType !== undefined) localStorage.setItem('fs.deviceType', next.deviceType);
     if (partial.visibility !== undefined) localStorage.setItem('fs.visibility', next.visibility);
     if (partial.autoDownload !== undefined) localStorage.setItem('fs.autoDownload', String(next.autoDownload));
@@ -170,10 +216,19 @@ export function updateSettings(partial: Partial<SettingsState>) {
 }
 
 export function resetSettingsToDefault() {
+  localStorage.removeItem('fs.customDeviceName');
+  localStorage.removeItem('fs.deviceName');
+  const fresh = getRandomWordName();
+  try {
+    sessionStorage.setItem('fs.sessionDeviceName', fresh);
+  } catch {
+    // ignore
+  }
+
   const defaults: SettingsState = {
     theme: 'dark',
     accent: { type: 'preset', name: 'signal' },
-    deviceName: getDefaultDeviceName(),
+    deviceName: fresh,
     deviceType: 'auto',
     visibility: 'everyone',
     autoDownload: false,
@@ -187,7 +242,6 @@ export function resetSettingsToDefault() {
   };
 
   localStorage.removeItem('fs.theme');
-  localStorage.removeItem('fs.deviceName');
   localStorage.removeItem('fs.deviceType');
   localStorage.removeItem('fs.visibility');
   localStorage.removeItem('fs.autoDownload');

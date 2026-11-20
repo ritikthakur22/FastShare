@@ -53,6 +53,8 @@ export type ServerClientMessage =
       sdp?: RTCSessionDescriptionInit;
       ice?: RTCIceCandidateInit;
       candidate?: RTCIceCandidateInit;
+      roomType?: string;
+      roomId?: string;
       message?: unknown;
     }
   | {
@@ -161,6 +163,8 @@ export function parseServerMessage(raw: string): ServerClientMessage | null {
           sdp: data.sdp,
           ice: data.ice,
           candidate: data.candidate,
+          roomType: typeof data.roomType === 'string' ? data.roomType : undefined,
+          roomId: typeof data.roomId === 'string' ? data.roomId : undefined,
           message: data.message,
         };
       case 'pair-device-initiated':

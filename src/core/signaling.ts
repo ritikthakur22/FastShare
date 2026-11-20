@@ -31,7 +31,13 @@ export const signalingStore = createStore<SignalingState>({
 let socket: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let reconnectAttempts = 0;
-let signalHandlers: ((sender: string, message: { sdp?: RTCSessionDescriptionInit; ice?: RTCIceCandidateInit; candidate?: RTCIceCandidateInit }) => void)[] = [];
+let signalHandlers: ((sender: string, message: {
+  sdp?: RTCSessionDescriptionInit;
+  ice?: RTCIceCandidateInit;
+  candidate?: RTCIceCandidateInit;
+  roomType?: string;
+  roomId?: string;
+}) => void)[] = [];
 let myPeerId: string | null = null;
 
 registerServerSender((data: unknown) => {
@@ -43,7 +49,13 @@ registerServerSender((data: unknown) => {
 });
 
 export function onSignal(
-  handler: (sender: string, message: { sdp?: RTCSessionDescriptionInit; ice?: RTCIceCandidateInit; candidate?: RTCIceCandidateInit }) => void
+  handler: (sender: string, message: {
+    sdp?: RTCSessionDescriptionInit;
+    ice?: RTCIceCandidateInit;
+    candidate?: RTCIceCandidateInit;
+    roomType?: string;
+    roomId?: string;
+  }) => void
 ) {
   signalHandlers.push(handler);
   return () => {
@@ -160,6 +172,8 @@ export function connectSignaling() {
               sdp: msg.sdp,
               candidate: msg.candidate || msg.ice,
               ice: msg.ice || msg.candidate,
+              roomType: msg.roomType,
+              roomId: msg.roomId,
             });
           }
         }
@@ -208,8 +222,25 @@ export function sendSignal(
 ) {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
   const peer = peersStore.get()[toPeerId];
-  const targetRoomType = roomType || peer?.roomType || 'ip';
-  const targetRoomId = roomId || peer?.roomId;
+
+  // Resolve room routing:
+  // Render signaling server routes by sender.ip when roomType === 'ip'.
+  // For paired devices (secret) or public room devices, we MUST send roomType: 'secret' / 'public-id'
+  // along with roomId, otherwise the server looks in sender.ip and drops signals across different Wi-Fi networks!
+  let targetRoomType = roomType;
+  let targetRoomId = roomId;
+
+  if (!targetRoomType || targetRoomType === 'ip') {
+    if (peer?.roomType && peer.roomType !== 'ip') {
+      targetRoomType = peer.roomType;
+      targetRoomId = peer.roomId;
+    } else {
+      targetRoomType = targetRoomType || peer?.roomType || 'ip';
+      targetRoomId = targetRoomId || peer?.roomId;
+    }
+  } else if (!targetRoomId && peer?.roomId) {
+    targetRoomId = peer.roomId;
+  }
 
   const payload: Record<string, unknown> = {
     type: 'signal',
