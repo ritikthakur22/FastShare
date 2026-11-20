@@ -9,14 +9,23 @@ interface RadarProps {
   onOpenLinkDevices?: () => void;
 }
 
-// Polar slots matching native app: [radius factor (0..1), angle in degrees]
+// 12 Polar slots evenly distributed across 3 concentric rings: [radius factor (0..1), angle in degrees]
 const RADAR_SLOTS = [
-  { rFactor: 0.54, angle: 35 },   // Middle ring (0.54), top-right
-  { rFactor: 0.54, angle: 145 },  // Middle ring (0.54), top-left
-  { rFactor: 0.77, angle: 325 },  // Outer ring (0.77), bottom-right
-  { rFactor: 0.77, angle: 215 },  // Outer ring (0.77), bottom-left
-  { rFactor: 0.31, angle: 90 },   // Inner ring (0.31), top
-  { rFactor: 0.77, angle: 90 },   // Outer ring (0.77), top
+  // Ring 1 (Inner, 0.31) - 2 slots
+  { rFactor: 0.31, angle: 90 },   // Top
+  { rFactor: 0.31, angle: 270 },  // Bottom
+  // Ring 2 (Middle, 0.54) - 4 slots in 4 quadrants
+  { rFactor: 0.54, angle: 35 },   // Top-Right
+  { rFactor: 0.54, angle: 145 },  // Top-Left
+  { rFactor: 0.54, angle: 215 },  // Bottom-Left
+  { rFactor: 0.54, angle: 325 },  // Bottom-Right
+  // Ring 3 (Outer, 0.77) - 6 slots evenly spaced at 60 deg
+  { rFactor: 0.77, angle: 0 },    // East
+  { rFactor: 0.77, angle: 60 },   // North-East
+  { rFactor: 0.77, angle: 120 },  // North-West
+  { rFactor: 0.77, angle: 180 },  // West
+  { rFactor: 0.77, angle: 240 },  // South-West
+  { rFactor: 0.77, angle: 300 },  // South-East
 ];
 
 export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices }: RadarProps) {
@@ -345,7 +354,7 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
                   >
                     <Icon
                       name={isLaptop ? 'laptop' : 'smartphone'}
-                      size={26}
+                      size={22}
                       color={isSelected ? 'var(--fs-accent)' : 'var(--fs-text)'}
                     />
                   </div>
@@ -412,9 +421,7 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
                         ? '55%'
                         : peer.state === 'done'
                         ? 'Sent'
-                        : isWifi
-                        ? 'Wi-Fi'
-                        : 'Internet'}
+                        : `${isWifi ? 'Wi-Fi' : 'Internet'}${peer.deviceName ? `, ${peer.deviceName}` : ''}`}
                     </span>
                   </p>
                 </div>
