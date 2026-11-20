@@ -75,19 +75,17 @@ describe('Reactive Stores', () => {
     expect(items[0].direction).toBe('sent');
   });
 
-  it('provides random names from the curated Nepali name list', async () => {
-    const { RANDOM_ONE_WORD_NAMES, getRandomWordName, getDefaultDeviceName } = await import('./settings');
-    expect(RANDOM_ONE_WORD_NAMES).toContain('Prince');
-    expect(RANDOM_ONE_WORD_NAMES).toContain('Ritik');
-    expect(RANDOM_ONE_WORD_NAMES).toContain('Richa');
-    expect(RANDOM_ONE_WORD_NAMES).toContain('Bikash');
-    expect(RANDOM_ONE_WORD_NAMES).toContain('Sneha');
-    expect(RANDOM_ONE_WORD_NAMES).toContain('Sujan');
+  it('manages device naming with server dynamic fallback and custom override', async () => {
+    const { updateSettings, settingsStore, getDefaultDeviceName } = await import('./settings');
+    expect(getDefaultDeviceName()).toBeTruthy();
 
-    const rand = getRandomWordName();
-    expect(RANDOM_ONE_WORD_NAMES).toContain(rand);
+    updateSettings({ deviceName: 'Ritik Laptop' });
+    expect(settingsStore.get().deviceName).toBe('Ritik Laptop');
+    expect(localStorage.getItem('fs.customDeviceName')).toBe('Ritik Laptop');
 
-    const def = getDefaultDeviceName();
-    expect(RANDOM_ONE_WORD_NAMES).toContain(def);
+    // Clearing custom name reverts to fallback
+    updateSettings({ deviceName: '' });
+    expect(localStorage.getItem('fs.customDeviceName')).toBeNull();
+    expect(settingsStore.get().deviceName).toBeTruthy();
   });
 });

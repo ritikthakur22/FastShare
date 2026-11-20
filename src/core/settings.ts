@@ -28,23 +28,14 @@ export interface SettingsState {
   autoRetry: boolean;
 }
 
-export const RANDOM_ONE_WORD_NAMES = [
-  'Prince', 'Aadarsh', 'Richa', 'Bikash', 'Aayush', 'Prem', 'Aaditya',
-  'Prashant', 'Pratik', 'Pratyush', 'Radium', 'Ranjan', 'Rijan', 'Ritik',
-  'Riya', 'Rohit', 'Rosha', 'Sachin', 'Saksham', 'Sakshyam', 'Samar',
-  'Samir', 'Sanjiban', 'Saroj', 'Saugat', 'Saurav', 'Saurya', 'Seemon',
-  'Shailesh', 'Sharamsh', 'Shyam', 'Sneha', 'Sourav', 'Sovana', 'Subash',
-  'Subechhya', 'Subham', 'Sujan', 'Sumina', 'Sumiran', 'Sumit', 'Sushant',
-  'Sushil', 'Suyog', 'Swikriti', 'Utsav', 'Utsuk',
-];
-
-export function getRandomWordName(): string {
-  const idx = Math.floor(Math.random() * RANDOM_ONE_WORD_NAMES.length);
-  return RANDOM_ONE_WORD_NAMES[idx]!;
-}
-
 export function getDefaultDeviceName(): string {
-  return getRandomWordName();
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  if (/Android/i.test(ua)) return 'Android Device';
+  if (/iPhone|iPad/i.test(ua)) return 'Apple Device';
+  if (/Macintosh/i.test(ua)) return 'Mac';
+  if (/Windows/i.test(ua)) return 'Windows PC';
+  if (/Linux/i.test(ua)) return 'Linux PC';
+  return 'FastShare Device';
 }
 
 function loadInitialSettings(): SettingsState {
@@ -60,22 +51,11 @@ function loadInitialSettings(): SettingsState {
     // ignore
   }
 
-  let deviceName: string;
-  if (explicitCustomName && explicitCustomName.trim()) {
-    deviceName = explicitCustomName.trim();
-  } else if (sessionName && sessionName.trim()) {
-    deviceName = sessionName.trim();
-  } else {
-    // Every new tab or visit gets a fresh random name from user's custom dictionary
-    deviceName = getRandomWordName();
-    try {
-      sessionStorage.setItem('fs.sessionDeviceName', deviceName);
-    } catch {
-      // ignore
-    }
-  }
+  const deviceName = (explicitCustomName && explicitCustomName.trim())
+    || (sessionName && sessionName.trim())
+    || getDefaultDeviceName();
 
-  // Auto-upgrade generic desktop names to unique one-word random names
+  // Clear legacy generic device names
   try {
     const legacy = localStorage.getItem('fs.deviceName');
     if (legacy && (legacy.includes('PC') || legacy.includes('Device') || legacy.includes('Phone') || legacy === 'Linux PC' || legacy === 'Windows PC')) {
@@ -189,13 +169,8 @@ export function updateSettings(partial: Partial<SettingsState>) {
       } else {
         localStorage.removeItem('fs.customDeviceName');
         localStorage.removeItem('fs.deviceName');
-        const fresh = getRandomWordName();
-        try {
-          sessionStorage.setItem('fs.sessionDeviceName', fresh);
-        } catch {
-          // ignore
-        }
-        next.deviceName = fresh;
+        const fallback = sessionStorage.getItem('fs.sessionDeviceName') || getDefaultDeviceName();
+        next.deviceName = fallback;
       }
     }
     if (partial.deviceType !== undefined) localStorage.setItem('fs.deviceType', next.deviceType);
@@ -218,17 +193,12 @@ export function updateSettings(partial: Partial<SettingsState>) {
 export function resetSettingsToDefault() {
   localStorage.removeItem('fs.customDeviceName');
   localStorage.removeItem('fs.deviceName');
-  const fresh = getRandomWordName();
-  try {
-    sessionStorage.setItem('fs.sessionDeviceName', fresh);
-  } catch {
-    // ignore
-  }
+  const fallback = sessionStorage.getItem('fs.sessionDeviceName') || getDefaultDeviceName();
 
   const defaults: SettingsState = {
     theme: 'dark',
     accent: { type: 'preset', name: 'signal' },
-    deviceName: fresh,
+    deviceName: fallback,
     deviceType: 'auto',
     visibility: 'everyone',
     autoDownload: false,

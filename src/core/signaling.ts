@@ -1,7 +1,7 @@
 import { createStore } from './store';
 import { parseServerMessage } from '../protocol/server';
 import { setPeers, addPeer, removePeer, peersStore } from './peers';
-import { settingsStore, DEFAULT_SERVER_URL } from './settings';
+import { settingsStore, updateSettings, DEFAULT_SERVER_URL } from './settings';
 import { setRtcConfig, connectToPeer, createPeerConnection, closePeerConnection } from './rtc';
 import {
   registerServerSender,
@@ -132,6 +132,17 @@ export function connectSignaling() {
           connected: true,
           connecting: false,
         }));
+
+        // If the user hasn't set an explicit custom name, adopt the server's dynamic name (old FastShare / PairDrop behavior)
+        const customName = localStorage.getItem('fs.customDeviceName');
+        if (!customName && msg.displayName) {
+          try {
+            sessionStorage.setItem('fs.sessionDeviceName', msg.displayName);
+          } catch {
+            // ignore
+          }
+          updateSettings({ deviceName: msg.displayName });
+        }
 
         // Join the IP room (nearby Wi-Fi devices)
         socket?.send(JSON.stringify({ type: 'join-ip-room' }));
