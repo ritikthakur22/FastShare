@@ -38,9 +38,9 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
   const stageRef = useRef<HTMLDivElement>(null);
   const [stageSize, setStageSize] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-      return Math.min(680, window.innerWidth - 32, window.innerHeight - 200);
+      return Math.min(640, window.innerWidth - 32, window.innerHeight - 230);
     }
-    return 600;
+    return 560;
   });
 
   useEffect(() => {
@@ -84,8 +84,8 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        padding: '20px 24px 64px 24px',
-        overflowY: 'auto',
+        padding: overflowPeers.length > 0 ? '16px 24px 48px 24px' : '16px 24px 16px 24px',
+        overflowY: (viewMode === 'list' || overflowPeers.length > 0) ? 'auto' : 'hidden',
         overflowX: 'hidden',
         scrollbarWidth: 'thin',
         scrollbarColor: 'var(--fs-separator) transparent',
@@ -217,8 +217,8 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '12px 0 20px 0',
-              marginBottom: '16px',
+              padding: '8px 0 12px 0',
+              marginBottom: overflowPeers.length > 0 ? '16px' : '0',
               flexShrink: 0,
             }}
           >
