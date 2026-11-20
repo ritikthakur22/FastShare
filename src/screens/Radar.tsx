@@ -38,9 +38,9 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
   const stageRef = useRef<HTMLDivElement>(null);
   const [stageSize, setStageSize] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-      return Math.min(540, window.innerWidth - 32, window.innerHeight - 220);
+      return Math.min(680, window.innerWidth - 32, window.innerHeight - 200);
     }
-    return 480;
+    return 600;
   });
 
   useEffect(() => {
@@ -224,7 +224,7 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
           >
             <div
               ref={stageRef}
-              className={`fs-radar-stage ${overflowPeers.length > 0 ? 'fs-radar-stage-compact' : ''}`}
+              className="fs-radar-stage"
             >
               {/* Ring 4 (Outermost Ambient Radar Boundary with Soft Tint) */}
               <div
@@ -481,6 +481,7 @@ export function Radar({ peers, onSelectPeerForSend, onRefresh, onOpenLinkDevices
 
                     {/* Device Label under node */}
                     <div
+                      className="fs-radar-node-label"
                       style={{
                         textAlign: 'center',
                         maxWidth: '110px',

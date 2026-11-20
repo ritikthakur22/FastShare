@@ -41,6 +41,17 @@
     padding: 10px 12px !important;
     font-size: 0.85rem !important;
   }
+
+  .fs-radar-stage {
+    width: min(380px, 92vw, calc(100dvh - 200px)) !important;
+    height: min(380px, 92vw, calc(100dvh - 200px)) !important;
+    min-height: 260px !important;
+    min-width: 260px !important;
+  }
+
+  .fs-radar-node-label {
+    max-width: 84px !important;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -229,8 +240,8 @@ dialog[open] {
 
 .fs-radar-stage {
   position: relative;
-  width: min(540px, 88vw, calc(100dvh - 220px));
-  height: min(540px, 88vw, calc(100dvh - 220px));
+  width: min(680px, 92vw, calc(100dvh - 200px));
+  height: min(680px, 92vw, calc(100dvh - 200px));
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -238,12 +249,7 @@ dialog[open] {
   margin: auto;
   min-height: 280px;
   min-width: 280px;
-  transition: width var(--fs-transition-base), height var(--fs-transition-base);
-}
-
-.fs-radar-stage.fs-radar-stage-compact {
-  width: min(420px, 80vw, calc(100dvh - 360px));
-  height: min(420px, 80vw, calc(100dvh - 360px));
+  transition: transform var(--fs-transition-base);
 }
 
 .fs-radar-sweep {
