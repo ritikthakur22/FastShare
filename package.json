@@ -24,7 +24,7 @@
     "ua-parser-js": "^1.0.37",
     "unique-names-generator": "^4.3.0",
     "uqr": "^0.1.2",
-    "ws": "^8.16.0"
+    "ws": "^8.23.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.9.5",
